@@ -1,0 +1,1428 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AT Roster</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #68728a;
+      --line: #dce2ec;
+      --panel: #ffffff;
+      --page: #f3f6fb;
+      --brand: #1769aa;
+      --brand-dark: #123a5a;
+      --brand-soft: #eaf4fb;
+      --green: #16794a;
+      --green-soft: #e7f7ef;
+      --amber: #9a5c00;
+      --amber-soft: #fff3d6;
+      --red: #ad2e34;
+      --red-soft: #ffecee;
+      --off: #4c6f91;
+      --off-soft: #edf3f8;
+      --shadow: 0 12px 34px rgba(28, 41, 72, .08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--ink);
+      font: 14px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 12px 22px;
+      color: white;
+      background: linear-gradient(120deg, #102f52, #195a8d);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo { display: grid; place-items: center; min-width: 42px; height: 38px; padding: 0 10px; border-radius: 8px; background: white; color: var(--brand-dark); font-size: 10px; letter-spacing: .08em; font-weight: 900; }
+    h1 { margin: 0; font-size: 18px; }
+    .subtitle { opacity: .78; font-size: 12px; }
+    .top-actions { display: flex; justify-content: flex-end; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .btn {
+      border: 1px solid transparent;
+      border-radius: 9px;
+      padding: 8px 12px;
+      background: white;
+      color: var(--ink);
+      font-weight: 650;
+    }
+    .btn.primary { background: var(--brand); color: white; box-shadow: 0 3px 10px rgba(23,105,170,.18); }
+    .btn.secondary { background: white; color: var(--brand); border-color: #a9c8df; }
+    .btn.ghost { background: transparent; color: white; border-color: rgba(255,255,255,.42); }
+    .btn.danger { color: var(--red); border-color: #f0c6ca; }
+    .shell { padding: 22px; max-width: 1800px; margin: auto; }
+    .section-nav { position: sticky; top: 0; z-index: 8; display: flex; gap: 6px; padding: 9px 22px; overflow-x: auto; background: rgba(243,246,251,.96); border-bottom: 1px solid var(--line); backdrop-filter: blur(10px); }
+    .section-nav a, .section-nav button { white-space: nowrap; padding: 7px 10px; border: 0; border-radius: 8px; color: var(--muted); background: transparent; text-decoration: none; font-size: 12px; font-weight: 750; }
+    .section-nav a:hover, .section-nav button:hover { color: var(--brand); background: var(--brand-soft); }
+    .page-section { scroll-margin-top: 58px; margin-bottom: 18px !important; border-color: #d4dce9 !important; box-shadow: 0 10px 28px rgba(28,41,72,.07) !important; }
+    .section-heading { padding: 14px 15px 10px; border-bottom: 1px solid var(--line); background: #fafbfe; }
+    .section-heading strong { display: block; font-size: 15px; }
+    .section-heading span { color: var(--muted); font-size: 12px; }
+    .section-content { padding: 12px; }
+    .toolbar, .stats, .roster-card, .dashboard {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+    }
+    .dashboard { margin-bottom: 14px; overflow: hidden; }
+    .dashboard-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 13px 15px; border-bottom: 1px solid var(--line); }
+    .dashboard-head strong { font-size: 15px; }
+    .dashboard-head span { color: var(--muted); font-size: 12px; }
+    .dashboard-section-title { padding: 8px 12px; background: #f7f9fc; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
+    .dashboard-grid { display: grid; grid-template-columns: repeat(6, minmax(125px, 1fr)); gap: 1px; background: var(--line); }
+    .metric { padding: 10px 12px; background: white; }
+    .metric span { color: var(--muted); font-size: 11px; text-transform: uppercase; font-weight: 750; }
+    .metric strong { display: block; margin-top: 3px; font-size: 20px; }
+    .shift-breakdown { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 15px; background: #fafbfe; }
+    .shift-chip { padding: 7px 10px; border: 1px solid var(--line); border-radius: 999px; background: white; font-size: 12px; }
+    .toolbar {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .planner {
+      display: grid;
+      grid-template-columns: minmax(150px, 16fr) minmax(240px, 28fr) minmax(125px, 13fr) minmax(125px, 13fr) minmax(135px, 14fr) auto auto auto;
+      align-items: end;
+      gap: 8px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+    }
+    .planner label { min-width: 0; }
+    .planner input, .planner select { width: 100%; min-width: 0; }
+    .planner button { min-height: 36px; white-space: nowrap; }
+    .shift-manager { padding: 10px 12px; margin-bottom: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
+    .shift-manager-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 8px; }
+    .shift-manager-head span { color: var(--muted); font-size: 12px; }
+    .shift-form { display: grid; grid-template-columns: 1fr 130px 130px 1.5fr auto; gap: 8px; align-items: end; }
+    .saved-shifts { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 9px; }
+    .saved-shift { padding: 7px 9px; border: 1px solid var(--line); border-radius: 9px; background: #fafbfe; font-size: 12px; cursor: pointer; }
+    .saved-shift:hover { border-color: #91abed; }
+    .group-section { display: grid; gap: 7px; }
+    .group-section-title { display: flex; justify-content: space-between; align-items: center; color: var(--ink); font-size: 12px; font-weight: 800; }
+    .check-list { max-height: 190px; overflow-y: auto; overflow-x: hidden; border: 1px solid var(--line); border-radius: 9px; background: white; }
+    .check-row { display: flex; align-items: center; justify-content: flex-start; gap: 9px; min-height: 42px; padding: 8px 10px; border-bottom: 1px solid var(--line); text-transform: none; letter-spacing: normal; color: var(--ink); font-size: 13px; }
+    .check-row:last-child { border-bottom: 0; }
+    .check-row input { flex: 0 0 auto; min-height: auto; width: 16px; height: 16px; margin: 0; }
+    .check-row span { min-width: 0; overflow-wrap: anywhere; }
+    .member-remove { margin-left: auto; flex: 0 0 auto; }
+    .employee-table-wrap { max-height: 210px; overflow: auto; border: 1px solid var(--line); border-radius: 9px; }
+    .employee-table { min-width: 560px; border-collapse: separate; border-spacing: 0; }
+    .employee-table th { position: sticky; top: 0; z-index: 1; padding: 8px 10px; background: #f7f9fc; }
+    .employee-table td { padding: 8px 10px; background: white; vertical-align: middle; }
+    .employee-table th:first-child, .employee-table td:first-child { position: static; width: 44px; text-align: center; }
+    .employee-table input { width: 16px; height: 16px; min-height: auto; margin: 0; }
+    .modal-footer.group-footer { justify-content: space-between; }
+    .group-footer-right { display: flex; gap: 8px; }
+    .person-actions { margin-top: 5px; }
+    .link-btn { padding: 0; border: 0; background: transparent; color: var(--brand); font-size: 11px; font-weight: 700; }
+    .controls { display: flex; align-items: end; gap: 10px; flex-wrap: wrap; }
+    label { display: grid; gap: 5px; color: var(--muted); font-size: 11px; font-weight: 750; text-transform: uppercase; letter-spacing: .04em; }
+    input, select {
+      min-height: 36px;
+      padding: 7px 9px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+      color: var(--ink);
+    }
+    .segmented { display: flex; padding: 3px; border: 1px solid var(--line); border-radius: 10px; background: #f5f7fb; }
+    .segmented button { border: 0; border-radius: 7px; padding: 7px 11px; background: transparent; color: var(--muted); }
+    .segmented button.active { background: white; color: var(--brand); box-shadow: 0 2px 7px rgba(24,43,84,.12); font-weight: 750; }
+    .stats { display: grid; grid-template-columns: repeat(5, minmax(120px, 1fr)); gap: 1px; overflow: hidden; margin-bottom: 10px; }
+    .stat { padding: 9px 12px; background: white; }
+    .stat span { display: block; color: var(--muted); font-size: 11px; text-transform: uppercase; font-weight: 750; }
+    .stat strong { display: block; margin-top: 3px; font-size: 18px; }
+    .roster-card { overflow: hidden; }
+    .roster-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+    .roster-head strong { font-size: 15px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 10px; color: var(--muted); font-size: 11px; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+    .table-wrap { overflow: auto; max-height: calc(100vh - 330px); }
+    table { width: 100%; min-width: 1180px; border-collapse: separate; border-spacing: 0; }
+    th, td { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { position: sticky; top: 0; z-index: 3; padding: 10px; background: #f7f9fc; color: var(--muted); text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+    th:first-child, td:first-child { position: sticky; left: 0; z-index: 2; background: white; }
+    th:first-child { z-index: 4; background: #f7f9fc; }
+    .person { width: 190px; min-width: 190px; padding: 11px; }
+    .person strong, .person span { display: block; }
+    .person span { color: var(--muted); font-size: 11px; margin-top: 2px; }
+    .shift-cell { min-width: 125px; padding: 5px; background: #fbfcfe; }
+    .shift {
+      min-height: 62px;
+      width: 100%;
+      text-align: left;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 8px;
+      background: white;
+      color: var(--ink);
+    }
+    .shift:hover { border-color: #91abed; box-shadow: 0 2px 9px rgba(35,86,216,.10); }
+    .shift .type { font-weight: 760; font-size: 12px; }
+    .shift .time, .shift .attendance { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; }
+    .shift.full { border-left: 5px solid var(--brand); background: #fff8f2; }
+    .shift.half { border-left: 4px solid var(--amber); background: var(--amber-soft); }
+    .shift.off { border-left: 4px solid var(--off); background: var(--off-soft); }
+    .shift.absent { border-left: 4px solid var(--red); background: var(--red-soft); }
+    .shift.leave { border-left: 4px solid #64748b; background: #f1f5f9; }
+    .shift.unassigned { color: var(--muted); border: 1px dotted #aeb8c8; border-left: 4px dotted #aeb8c8; background: #f5f7fa; }
+    .attendance.present { color: var(--green); }
+    .attendance.absent { color: var(--red); }
+    .modal-backdrop {
+      display: none;
+      position: fixed; inset: 0; z-index: 10;
+      align-items: center; justify-content: center;
+      padding: 18px;
+      background: rgba(20, 28, 46, .52);
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal { width: min(560px, 100%); border-radius: 16px; background: white; box-shadow: 0 24px 80px rgba(13,24,48,.28); overflow: hidden; }
+    .modal.group-modal { width: min(900px, 100%); max-height: 92vh; display: flex; flex-direction: column; }
+    .modal-header, .modal-footer { display: flex; align-items: center; justify-content: space-between; padding: 15px 18px; border-bottom: 1px solid var(--line); }
+    .modal-footer { border-top: 1px solid var(--line); border-bottom: 0; justify-content: flex-end; gap: 8px; }
+    .modal-body { padding: 18px; display: grid; gap: 14px; overflow: auto; }
+    .group-columns { display: grid; grid-template-columns: 1fr 1.35fr; gap: 14px; min-height: 320px; }
+    .group-columns .group-section { min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: #f8fafc; }
+    .group-columns .check-list, .group-columns .employee-table-wrap { max-height: 310px; background: white; }
+    .group-instruction { padding: 8px 10px; border-radius: 8px; background: var(--brand-soft); color: var(--brand-dark); font-size: 12px; }
+    .group-status-field { display: grid; align-content: end; }
+    .group-status { min-height: 42px; display: flex; align-items: center; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; background: #f8fafc; font-weight: 800; }
+    .group-status.active { color: #17613a; background: #edf8f1; border-color: #b9dfc7; }
+    .group-status.inactive { color: #9b2c2c; background: #fff3f3; border-color: #efc2c2; }
+    .is-hidden { display: none !important; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-grid label.wide { grid-column: 1 / -1; }
+    .modal input, .modal select { width: 100%; }
+    .hint { color: var(--muted); font-size: 12px; }
+    .close { border: 0; background: transparent; font-size: 22px; color: var(--muted); }
+    .empty { padding: 35px; text-align: center; color: var(--muted); }
+    .login-screen {
+      position: fixed; inset: 0; z-index: 30;
+      display: grid; place-items: center; padding: 18px;
+      background: linear-gradient(135deg, #0e2d4e, #1d6798);
+    }
+    .login-screen.hidden { display: none; }
+    .login-card { width: min(420px, 100%); padding: 25px; border-radius: 18px; background: white; box-shadow: 0 24px 80px rgba(7,22,63,.35); }
+    .login-card h2 { margin: 0 0 6px; }
+    .login-card p { margin: 0 0 20px; color: var(--muted); }
+    .login-card label { margin-bottom: 13px; }
+    .login-card input, .login-card select, .login-card button { width: 100%; }
+    .login-error { min-height: 20px; color: var(--red); font-size: 12px; margin-top: 8px; }
+    .access-badge { padding: 8px 11px; border-radius: 9px; background: rgba(255,255,255,.15); font-size: 12px; font-weight: 700; }
+    .sync-badge { display: grid; gap: 1px; min-width: 145px; padding: 6px 9px; border-radius: 9px; background: rgba(255,255,255,.14); font-size: 10px; }
+    .sync-badge strong { font-size: 11px; }
+    .sync-badge.failed strong { color: #ffd2d2; }
+    .sync-badge.pending strong { color: #ffe09b; }
+    .admin-only { display: none; }
+    body.admin-mode .admin-only { display: inline-flex; }
+    body.admin-mode .department-only { display: none; }
+    .department-table { min-width: 900px; }
+    .status-pill { display: inline-flex; padding: 3px 7px; border-radius: 999px; font-size: 11px; font-weight: 750; background: var(--green-soft); color: var(--green); }
+    .status-pill.inactive { background: var(--red-soft); color: var(--red); }
+    @media (max-width: 1400px) {
+      .planner { grid-template-columns: repeat(4, minmax(150px, 1fr)); }
+    }
+    @media (max-width: 800px) {
+      .topbar { align-items: flex-start; padding: 16px; }
+      .shell { padding: 12px; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+      .planner { grid-template-columns: 1fr; }
+      .shift-form { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-grid label.wide { grid-column: auto; }
+      .group-columns { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <section class="login-screen" id="loginScreen">
+    <form class="login-card" id="loginForm">
+      <div class="brand" style="color:var(--brand-dark);margin-bottom:16px"><div class="logo">AXESTRACK</div><div><h1>AT Roster</h1><div class="subtitle" style="opacity:1;color:var(--muted)">Axestrack</div></div></div>
+      <h2>Department Login</h2>
+      <p>Sign in to manage your department roster.</p>
+      <label>Select Department
+        <select id="loginDepartment"></select>
+      </label>
+      <label>Department Password
+        <input id="loginPassword" type="password" required autocomplete="current-password" placeholder="Enter department password">
+      </label>
+      <button class="btn primary" type="submit">Sign In</button>
+      <div class="login-error" id="loginError"></div>
+    </form>
+  </section>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">AXESTRACK</div>
+      <div><h1 id="rosterName">AT Roster</h1><div class="subtitle">Department roster and attendance management</div></div>
+    </div>
+    <div class="top-actions">
+      <div class="access-badge department-only" id="accessBadge">Department Access</div>
+      <div class="sync-badge pending admin-only" id="syncBadge"><strong>Pending Sync</strong><span id="syncBadgeDetail">Not configured</span></div>
+      <button class="btn ghost admin-only" id="manageDepartmentsBtn">Manage Departments</button>
+      <button class="btn ghost department-only" id="addEmployeeBtn">Add Employee</button>
+      <button class="btn ghost" id="manageStatusBtn">Manage Employees</button>
+      <button class="btn ghost admin-only" id="sheetSyncBtn">Google Sheet Sync</button>
+      <button class="btn ghost" id="exportBtn">Export Roster</button>
+      <button class="btn ghost" id="logoutBtn">Log Out</button>
+    </div>
+  </header>
+
+  <nav class="section-nav">
+    <a href="#shiftSetup">Shift Setup</a><a href="#rosterAssignment">Roster Assignment</a><a href="#workforceSummary">Workforce Summary</a><a href="#rosterGrid">Roster Grid</a><button id="navEmployeesBtn">Employees</button><button class="admin-only" id="navSettingsBtn">Settings</button>
+  </nav>
+  <main class="shell">
+    <section class="shift-manager page-section" id="shiftSetup">
+      <div class="shift-manager-head"><div><strong>Shift Setup</strong><br><span>Create reusable shifts for your department.</span></div></div>
+      <form class="shift-form" id="addShiftForm">
+        <label>Shift Display Name<input id="newShiftName" placeholder="Optional, e.g. Standard"></label>
+        <label>Start Time<input id="newShiftStart" required type="time"></label>
+        <label>End Time<input id="newShiftEnd" required type="time"></label>
+        <label>Remark<input id="newShiftRemark" placeholder="Optional remark"></label>
+        <button class="btn primary" type="submit">Add Shift</button>
+      </form>
+      <div class="saved-shifts" id="savedShifts"></div>
+    </section>
+
+    <section class="planner page-section" id="rosterAssignment">
+      <div style="grid-column:1/-1"><strong>Roster Assignment</strong><div class="hint">Apply shifts to employee groups for selected dates.</div></div>
+      <label>Employee Group
+        <select id="bulkGroup"></select>
+      </label>
+      <label>Shift
+        <select id="bulkShift"></select>
+      </label>
+      <label>From
+        <input id="bulkFrom" type="date">
+      </label>
+      <label>To
+        <input id="bulkTo" type="date">
+      </label>
+      <label>Weekly Off
+        <select id="bulkWeekOff">
+          <option value="">None</option><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option>
+        </select>
+      </label>
+      <button type="button" class="btn primary" id="applyTemplateBtn">Apply Roster</button>
+      <button type="button" class="btn secondary" id="clearRosterBtn">Clear Roster</button>
+      <button type="button" class="btn secondary" id="manageGroupsBtn">Manage Employee Groups</button>
+    </section>
+
+    <section class="toolbar page-section" id="viewControls">
+      <div style="width:100%"><strong>View Controls</strong><div class="hint">Choose the date range and roster view.</div></div>
+      <div class="controls">
+        <label>View From
+          <input id="startDate" type="date">
+        </label>
+        <div class="segmented" aria-label="Roster view">
+          <button data-view="day">Daily</button>
+          <button data-view="week" class="active">Weekly</button>
+          <button data-view="month">Monthly</button>
+        </div>
+        <button class="btn" id="todayBtn">Today</button>
+      </div>
+      <div class="controls">
+        <label>Search Employee
+          <input id="search" type="search" placeholder="Name or employee ID">
+        </label>
+      </div>
+    </section>
+
+    <section class="dashboard page-section" id="workforceSummary">
+      <div class="dashboard-head">
+        <div><strong>Workforce Summary</strong><br><span id="dashboardPeriod"></span></div>
+        <div class="segmented" aria-label="Dashboard period">
+          <button data-dashboard="week" class="active">Weekly</button>
+          <button data-dashboard="month">Monthly</button>
+        </div>
+      </div>
+      <div class="dashboard-section-title">Roster Summary</div>
+      <div class="dashboard-grid" id="rosterMetrics"></div>
+      <div class="dashboard-section-title">Attendance Summary</div>
+      <div class="dashboard-grid" id="attendanceMetrics"></div>
+      <div class="shift-breakdown" id="shiftBreakdown"></div>
+    </section>
+
+    <section class="roster-card page-section" id="rosterGrid">
+      <div class="roster-head">
+        <div><strong>Roster Grid</strong><div class="hint" id="rangeTitle">Review and update employee-wise roster and attendance.</div></div>
+        <div class="legend">
+          <span><i class="dot" style="background:#2356d8"></i>Full day</span>
+          <span><i class="dot" style="background:#d68a0c"></i>Half day</span>
+          <span><i class="dot" style="background:#4c6f91"></i>Week off</span>
+          <span><i class="dot" style="background:#ad2e34"></i>Absent</span>
+        </div>
+      </div>
+      <div class="table-wrap" id="tableWrap"></div>
+    </section>
+  </main>
+
+  <div class="modal-backdrop" id="shiftModal">
+    <form class="modal" id="shiftForm">
+      <div class="modal-header"><div><strong id="shiftModalTitle">Edit roster entry</strong><div class="hint" id="shiftModalSubtitle"></div></div><button type="button" class="close" data-close>&times;</button></div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <label>Roster assignment
+            <select id="assignmentShift"></select>
+          </label>
+          <label>Attendance
+            <select id="attendance">
+              <option value="">Not marked</option>
+              <option value="Present">Present</option>
+              <option value="Absent">Absent</option>
+              <option value="Half Day">Half Day</option>
+              <option value="Leave">Leave</option>
+            </select>
+          </label>
+          <label class="wide">Notes<input id="notes" type="text" placeholder="Optional operational note"></label>
+        </div>
+        <div class="hint">Select a saved shift or special status. One roster assignment is allowed per employee per date.</div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn danger" id="clearEntry">Clear entry</button><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">Save entry</button></div>
+    </form>
+  </div>
+
+  <div class="modal-backdrop" id="editShiftModal">
+    <form class="modal" id="editShiftForm">
+      <div class="modal-header"><div><strong>Edit shift</strong><div class="hint" id="editShiftCode"></div></div><button type="button" class="close" data-close>&times;</button></div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <label>Display name<input id="editShiftName" placeholder="Optional display name"></label>
+          <label>Change scope
+            <select id="editShiftScope">
+              <option value="future">Future assignments only</option>
+              <option value="all">Existing and future assignments</option>
+              <option value="new">Create as new shift</option>
+            </select>
+          </label>
+          <label>Start<input id="editShiftStart" required type="time"></label>
+          <label>End<input id="editShiftEnd" required type="time"></label>
+          <label class="wide">Remark<input id="editShiftRemark" placeholder="Optional remark"></label>
+        </div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">Save shift</button></div>
+    </form>
+  </div>
+
+  <div class="modal-backdrop" id="groupModal">
+    <form class="modal group-modal" id="groupForm">
+      <div class="modal-header"><div><strong>Manage Employee Groups</strong><div class="hint">Create employee groups for bulk roster assignment.</div></div><button type="button" class="close" data-close>&times;</button></div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <label>Select Group<select id="groupSelect"></select></label>
+          <label>Group name<input id="groupName" required placeholder="New group name"></label>
+          <label class="group-status-field">Group Status<span class="group-status active" id="groupStatus">New Group</span></label>
+          <label class="wide">Search Employee<input id="groupEmployeeSearch" type="search" placeholder="Name or employee ID"></label>
+        </div>
+        <div class="group-instruction" id="groupInstruction">Create a new group by adding available employees, then click Save New Group.</div>
+        <div class="group-columns">
+          <section class="group-section" id="currentMembersSection">
+            <div class="group-section-title"><span id="currentMembersTitle">Group Members</span><span id="currentMemberCount"></span></div>
+            <div class="check-list" id="currentMemberList"></div>
+          </section>
+          <section class="group-section" id="availableEmployeesSection">
+            <div class="group-section-title"><span id="pendingEmployeeTitle">Available Employees</span><span id="pendingEmployeeCount"></span></div>
+            <div class="employee-table-wrap" id="pendingEmployeeList"></div>
+          </section>
+        </div>
+      </div>
+      <div class="modal-footer group-footer"><button type="button" class="btn danger" id="deactivateGroupBtn">Deactivate Group</button><div class="group-footer-right"><button type="button" class="btn secondary" id="newGroupBtn">Clear</button><button type="button" class="btn primary" id="saveGroupBtn">Save New Group</button></div></div>
+    </form>
+  </div>
+
+  <div class="modal-backdrop" id="statusModal">
+    <form class="modal" id="statusForm">
+      <div class="modal-header"><div><strong>Change Employee Status</strong><div class="hint" id="statusEmployeeName"></div></div><button type="button" class="close" data-close>&times;</button></div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <label class="wide">Employee<select id="statusEmployeeSelect"></select></label>
+          <label>Status<select id="employeeStatus"><option>Active</option><option>Notice Period</option><option>Exited</option><option>Absconded</option><option>Inactive</option><option>On Hold</option></select></label>
+          <label>Effective date<input id="statusEffectiveDate" required type="date"></label>
+          <label class="wide">Remark<input id="statusRemark" placeholder="Optional reason for status change"></label>
+        </div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">Update status</button></div>
+    </form>
+  </div>
+
+  <div class="modal-backdrop" id="syncModal">
+    <form class="modal" id="syncForm">
+      <div class="modal-header"><div><strong>Google Sheet Sync</strong><div class="hint" id="syncStatus">Not configured</div></div><button type="button" class="close" data-close>&times;</button></div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <label class="wide">Shared Backend URL<input id="syncUrl" type="url" placeholder="Configured during deployment"></label>
+          <label class="wide is-hidden">Sync token<input id="syncToken" type="password"></label>
+          <label class="wide"><span><input id="autoSync" type="checkbox"> Automatic backend save enabled</span></label>
+        </div>
+        <div class="hint">Every saved change is stored centrally and updates the filterable Employee Roster tab. All authorized users load the same shared data.</div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn secondary" data-close>Close</button><button type="button" class="btn primary" id="syncNowBtn">Save Now</button></div>
+    </form>
+  </div>
+
+  <div class="modal-backdrop" id="employeeModal">
+    <form class="modal" id="employeeForm">
+      <div class="modal-header"><strong>Add Employee</strong><button type="button" class="close" data-close>&times;</button></div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <label>Employee ID<input id="employeeId" required placeholder="LT-106"></label>
+          <label>Employee name<input id="employeeName" required placeholder="Employee name"></label>
+          <label class="wide">Department<input id="employeeDepartment" required placeholder="Operations"></label>
+        </div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">Add Employee</button></div>
+    </form>
+  </div>
+
+  <div class="modal-backdrop" id="departmentModal">
+    <div class="modal group-modal">
+      <div class="modal-header"><div><strong>Manage Departments</strong><div class="hint">Create departments, manage access, and change department status.</div></div><button type="button" class="close" data-close>&times;</button></div>
+      <div class="modal-body">
+        <form class="form-grid" id="departmentForm">
+          <input id="departmentEditId" type="hidden">
+          <label>Department Name<input id="departmentName" required placeholder="Department name"></label>
+          <label>Department Password<input id="departmentPassword" type="password" placeholder="Required for new department"></label>
+          <label>Status<select id="departmentStatus"><option>Active</option><option>Inactive</option></select></label>
+          <label>Admin View Department<select id="adminViewDepartment"></select></label>
+          <div class="wide"><button class="btn primary" type="submit">Save Department</button> <button class="btn secondary" id="newDepartmentBtn" type="button">New Department</button></div>
+        </form>
+        <div class="employee-table-wrap">
+          <table class="employee-table department-table"><thead><tr><th>Department Name</th><th>Status</th><th>Password Last Updated</th><th>Created By</th><th>Created At</th><th>Last Updated At</th><th>Actions</th></tr></thead><tbody id="departmentRows"></tbody></table>
+        </div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn" data-close>Close</button></div>
+    </div>
+  </div>
+
+  <script src="backend-config.js"></script>
+  <script>
+    const BACKEND_URL = window.AT_ROSTER_BACKEND_URL || "";
+    const initialEmployees = [
+      { id: "LT-101", name: "Aarav Mehta", department: "Operations", status: "Active" },
+      { id: "LT-102", name: "Diya Sharma", department: "Operations", status: "Active" },
+      { id: "LT-103", name: "Kabir Singh", department: "Quality", status: "Active" },
+      { id: "LT-104", name: "Meera Nair", department: "Quality", status: "Active" },
+      { id: "LT-105", name: "Rohan Verma", department: "Operations", status: "Resigned" },
+      { id: "LT-106", name: "Sana Iyer", department: "Support", status: "Active" },
+      { id: "LT-107", name: "Neil Rao", department: "Finance", status: "Active" }
+    ];
+    const defaultDepartments = [
+      { id:"dep-operations", name:"Operations", password:"ops123", status:"Active", createdBy:"System", createdAt:"2026-06-09T00:00:00.000Z", updatedAt:"2026-06-09T00:00:00.000Z" },
+      { id:"dep-quality", name:"Quality", password:"ql123", status:"Active", createdBy:"System", createdAt:"2026-06-09T00:00:00.000Z", updatedAt:"2026-06-09T00:00:00.000Z" },
+      { id:"dep-support", name:"Support", password:"sp123", status:"Active", createdBy:"System", createdAt:"2026-06-09T00:00:00.000Z", updatedAt:"2026-06-09T00:00:00.000Z" },
+      { id:"dep-finance", name:"Finance", password:"fi123", status:"Active", createdBy:"System", createdAt:"2026-06-09T00:00:00.000Z", updatedAt:"2026-06-09T00:00:00.000Z" }
+    ];
+    const ADMIN_PASSWORD = "ad123";
+    const DEPARTMENT_SYNC_TOKENS = {
+      Operations: "AT-OPS-2026-9kP4xM7q",
+      Quality: "AT-QUALITY-2026-6nR8vT2z",
+      Support: "AT-SUPPORT-2026-3wL7cB5m",
+      Finance: "AT-FINANCE-2026-8yH2dQ4s"
+    };
+    const defaultShifts = [
+      { id: "shift-1", code: "Shift 1", displayName: "Standard", type: "full", start: "09:00", end: "18:00", remark: "" },
+      { id: "shift-2", code: "Shift 2", displayName: "Morning", type: "full", start: "07:00", end: "16:00", remark: "" },
+      { id: "shift-3", code: "Shift 3", displayName: "Evening", type: "full", start: "13:00", end: "22:00", remark: "" }
+    ];
+    const store = {
+      employees: JSON.parse(localStorage.getItem("lt-employees") || "null") || initialEmployees,
+      entries: JSON.parse(localStorage.getItem("lt-entries") || "{}"),
+      shiftDefinitions: JSON.parse(localStorage.getItem("at-shifts") || "{}"),
+      deploymentGroups: JSON.parse(localStorage.getItem("at-groups") || "{}"),
+      departments: JSON.parse(localStorage.getItem("at-departments") || "null") || defaultDepartments,
+      auditEvents: JSON.parse(localStorage.getItem("at-audit-events") || "[]"),
+      syncConfig: JSON.parse(localStorage.getItem("at-sheet-sync") || "{}"),
+      view: "week",
+      dashboardView: "week",
+      selected: null,
+      editingShiftId: null,
+      editingGroupId: null,
+      groupMembers: new Set(),
+      statusEmployeeId: null,
+      selectedGroupId: "",
+      department: sessionStorage.getItem("lt-department") || "",
+      accessLevel: sessionStorage.getItem("at-access-level") || "department",
+      backendSession: sessionStorage.getItem("at-backend-session") || "",
+      backendRevision: 0,
+      backendSaving: false,
+      backendPending: false
+    };
+    defaultDepartments.forEach(defaultDepartment => {
+      const saved = store.departments.find(department => department.name === defaultDepartment.name);
+      if (saved && !saved.password) saved.password = defaultDepartment.password;
+    });
+    const $ = id => document.getElementById(id);
+    const iso = d => {
+      const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+      return local.toISOString().slice(0, 10);
+    };
+    const parseDate = value => {
+      const [y, m, d] = value.split("-").map(Number);
+      return new Date(y, m - 1, d);
+    };
+    const addDays = (date, count) => { const d = new Date(date); d.setDate(d.getDate() + count); return d; };
+    const fmt = (date, options) => new Intl.DateTimeFormat("en-IN", options).format(date);
+    const persist = () => {
+      localStorage.setItem("lt-employees", JSON.stringify(store.employees));
+      localStorage.setItem("lt-entries", JSON.stringify(store.entries));
+      localStorage.setItem("at-shifts", JSON.stringify(store.shiftDefinitions));
+      localStorage.setItem("at-groups", JSON.stringify(store.deploymentGroups));
+      localStorage.setItem("at-departments", JSON.stringify(store.departments));
+      localStorage.setItem("at-audit-events", JSON.stringify(store.auditEvents));
+      store.syncConfig.syncState = "Pending Sync";
+      renderSyncBadge();
+      scheduleBackendSave();
+    };
+    const keyFor = (employeeId, date) => `${employeeId}|${date}`;
+    const labels = { full: "Full Day", half: "Half Day", off: "Week Off", weekend: "Weekend", other: "Other Time", unassigned: "Unassigned" };
+    const compactCode = shift => `S${String(shift.code || "").replace(/\D/g, "") || "?"}`;
+    const shiftDisplay = shift => `${shift.code} · ${shift.start}–${shift.end}${shift.displayName ? ` · ${shift.displayName}` : ""}${shift.remark ? ` · ${shift.remark}` : ""}`;
+    const nextShiftNumber = () => Math.max(0, ...departmentShifts().map(s => Number(String(s.code || s.name || "").replace(/\D/g, "")) || 0)) + 1;
+    let syncTimer;
+
+    function actorName() {
+      return store.accessLevel === "admin" ? "Admin" : `${store.department} TL`;
+    }
+
+    function audit(action, entityType, entityId, details = "") {
+      store.auditEvents.push({
+        id: `audit-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,
+        department: store.department, action, entityType, entityId, details,
+        createdBy: actorName(), createdAt: new Date().toISOString()
+      });
+      if (store.auditEvents.length > 3000) store.auditEvents.splice(0, store.auditEvents.length - 3000);
+    }
+
+    function renderSyncBadge() {
+      const state = store.syncConfig?.syncState || "Pending Sync";
+      $("syncBadge").className = `sync-badge admin-only ${state === "Sync Failed" ? "failed" : state === "Synced" ? "" : "pending"}`;
+      $("syncBadge").querySelector("strong").textContent = state;
+      const stamp = store.syncConfig?.lastSyncedAt;
+      $("syncBadgeDetail").textContent = stamp ? `Last saved ${fmt(new Date(stamp), {day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"})}` : (BACKEND_URL ? "Ready" : "Backend not configured");
+    }
+
+    function departmentChangesPayload() {
+      const employees = departmentEmployees();
+      const employeeIds = new Set(employees.map(e => e.id));
+      const entries = Object.entries(store.entries)
+        .filter(([key]) => employeeIds.has(key.split("|")[0]))
+        .map(([key, entry]) => {
+          const [employeeId, date] = key.split("|");
+          return { employeeId, date, entry };
+        });
+      return { employees, entries, shifts: departmentShifts(), groups: departmentGroups() };
+    }
+
+    function applyDepartmentState(state) {
+      if (!state?.department) return;
+      const department = state.department;
+      const existingEmployeeIds = new Set(store.employees.filter(employee => employee.department === department).map(employee => employee.id));
+      store.employees = store.employees.filter(employee => employee.department !== department).concat(state.employees || []);
+      Object.keys(store.entries).forEach(key => {
+        if (existingEmployeeIds.has(key.split("|")[0])) delete store.entries[key];
+      });
+      Object.assign(store.entries, state.entries || {});
+      store.shiftDefinitions[department] = state.shifts || [];
+      store.deploymentGroups[department] = state.groups || [];
+      store.auditEvents = store.auditEvents.filter(event => event.department !== department).concat(state.auditEvents || []);
+    }
+
+    function applyBackendPayload(result) {
+      if (result.departments) store.departments = result.departments;
+      if (result.role === "admin" && result.states) Object.values(result.states).forEach(applyDepartmentState);
+      if (result.state) applyDepartmentState(result.state);
+      store.backendRevision = result.revision || store.backendRevision;
+      localStorage.setItem("lt-employees", JSON.stringify(store.employees));
+      localStorage.setItem("lt-entries", JSON.stringify(store.entries));
+      localStorage.setItem("at-shifts", JSON.stringify(store.shiftDefinitions));
+      localStorage.setItem("at-groups", JSON.stringify(store.deploymentGroups));
+      localStorage.setItem("at-departments", JSON.stringify(store.departments));
+      localStorage.setItem("at-audit-events", JSON.stringify(store.auditEvents));
+    }
+
+    async function backendRequest(payload) {
+      if (!BACKEND_URL) throw new Error("Backend is not configured");
+      const response = await fetch(BACKEND_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      if (!result.ok) throw new Error(result.error || "Backend request failed");
+      return result;
+    }
+
+    function scheduleBackendSave() {
+      if (!store.department || !BACKEND_URL || !DEPARTMENT_SYNC_TOKENS[store.department]) return;
+      store.backendPending = true;
+      clearTimeout(syncTimer);
+      syncTimer = setTimeout(() => saveToBackend(false), 500);
+    }
+
+    async function saveToBackend(showResult = true) {
+      const token = DEPARTMENT_SYNC_TOKENS[store.department];
+      if (!BACKEND_URL || !token || !store.department) {
+        if (showResult) alert("Automatic Sheet sync is not configured for this department yet.");
+        return;
+      }
+      if (store.backendSaving) {
+        store.backendPending = true;
+        return;
+      }
+      store.backendSaving = true;
+      store.backendPending = false;
+      $("syncStatus").textContent = "Syncing…";
+      store.syncConfig.syncState = "Syncing";
+      renderSyncBadge();
+      try {
+        const result = await backendRequest({
+          action: "saveChanges",
+          token,
+          department: store.department,
+          ...departmentChangesPayload()
+        });
+        store.syncConfig.lastSyncedAt = result.savedAt || new Date().toISOString();
+        store.syncConfig.syncState = "Synced";
+        store.syncConfig.lastError = "";
+        localStorage.setItem("at-sheet-sync", JSON.stringify(store.syncConfig));
+        renderSyncBadge();
+        $("syncStatus").textContent = `Last saved at: ${fmt(new Date(store.syncConfig.lastSyncedAt), {dateStyle:"medium", timeStyle:"short"})}`;
+        if (showResult) alert("Google Sheet sync completed.");
+      } catch (error) {
+        store.syncConfig.syncState = "Sync Failed";
+        store.syncConfig.lastError = error.message;
+        localStorage.setItem("at-sheet-sync", JSON.stringify(store.syncConfig));
+        renderSyncBadge();
+        $("syncStatus").textContent = `Save failed: ${error.message}`;
+        if (showResult) alert("Some changes are pending sync. Please contact admin.");
+      } finally {
+        store.backendSaving = false;
+        if (store.backendPending) scheduleBackendSave();
+      }
+    }
+
+    async function refreshFromBackend() {
+      const token = DEPARTMENT_SYNC_TOKENS[store.department];
+      if (!BACKEND_URL || !token || !store.department) return;
+      try {
+        const result = await backendRequest({ action: "loadDepartment", token, department: store.department });
+        applyBackendPayload({ state: result });
+      } catch (error) {
+        store.syncConfig.syncState = "Sync Failed";
+        store.syncConfig.lastError = error.message;
+        localStorage.setItem("at-sheet-sync", JSON.stringify(store.syncConfig));
+        renderSyncBadge();
+      }
+    }
+
+    function openSyncSettings() {
+      $("syncUrl").value = BACKEND_URL;
+      $("syncUrl").readOnly = true;
+      $("syncToken").value = "";
+      $("syncToken").disabled = true;
+      $("autoSync").checked = true;
+      $("autoSync").disabled = true;
+      $("syncStatus").textContent = store.syncConfig?.lastSyncedAt ? `Last saved at: ${fmt(new Date(store.syncConfig.lastSyncedAt), {dateStyle:"medium", timeStyle:"short"})}` : (BACKEND_URL ? "Connected backend ready" : "Backend not configured");
+      $("syncModal").classList.add("open");
+    }
+
+    function datesForView() {
+      const start = parseDate($("startDate").value);
+      const count = store.view === "day" ? 1 : store.view === "week" ? 7 : new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate();
+      const mondayOffset = (start.getDay() + 6) % 7;
+      const base = store.view === "month" ? new Date(start.getFullYear(), start.getMonth(), 1) : store.view === "week" ? addDays(start, -mondayOffset) : start;
+      return Array.from({length: count}, (_, i) => addDays(base, i));
+    }
+
+    function visibleEmployees() {
+      const q = $("search").value.trim().toLowerCase();
+      const dates = datesForView();
+      const selectedGroup = employeeGroups()[$("bulkGroup").value];
+      return store.employees.filter(e =>
+        e.department === store.department &&
+        dates.some(d => isEligibleOn(e, iso(d))) &&
+        (!selectedGroup || selectedGroup.ids.includes(e.id)) &&
+        (!q || `${e.name} ${e.id}`.toLowerCase().includes(q))
+      );
+    }
+
+    function departmentEmployees() {
+      return store.employees.filter(e => e.department === store.department);
+    }
+
+    function isEligibleOn(employee, date) {
+      const status = employee.status === "Resigned" ? "Exited" : (employee.status || "Active");
+      if (status === "Active") return true;
+      if (status === "Notice Period") return !employee.statusEffectiveDate || date <= employee.statusEffectiveDate;
+      return false;
+    }
+
+    function isActiveGroupCandidate(employee) {
+      return (employee.status || "Active") === "Active";
+    }
+
+    function departmentGroups() {
+      if (!store.deploymentGroups[store.department]) {
+        store.deploymentGroups[store.department] = [];
+        persist();
+      }
+      const groups = store.deploymentGroups[store.department];
+      for (let index = groups.length - 1; index >= 0; index--) {
+        if (groups[index].dynamicAllActive) groups.splice(index, 1);
+      }
+      return groups;
+    }
+
+    function employeeGroups() {
+      return Object.fromEntries(departmentGroups().filter(g => g.active !== false).map(g => [g.id, {
+        label: g.name,
+        ids: (g.employeeIds || []).filter(id => {
+          const employee = store.employees.find(e => e.id === id && e.department === store.department);
+          return employee && isEligibleOn(employee, iso(new Date()));
+        })
+      }]));
+    }
+
+    function activeDepartments() {
+      return store.departments.filter(d => d.status === "Active");
+    }
+
+    function hasDepartmentHistory(name) {
+      return store.employees.some(e => e.department === name) ||
+        Object.keys(store.entries).some(key => store.employees.some(e => e.department === name && key.startsWith(`${e.id}|`))) ||
+        (store.shiftDefinitions[name] || []).length > 0 || (store.deploymentGroups[name] || []).length > 0;
+    }
+
+    function refreshLoginOptions() {
+      $("loginDepartment").innerHTML = `<option value="__admin__">Admin</option>${activeDepartments().map(d => `<option value="${d.id}">${d.name}</option>`).join("")}`;
+    }
+
+    function setAccessUi() {
+      document.body.classList.toggle("admin-mode", store.accessLevel === "admin");
+      $("accessBadge").textContent = "Department Access";
+    }
+
+    function renderDepartmentManager() {
+      const formatStamp = value => value ? fmt(new Date(value), {dateStyle:"medium", timeStyle:"short"}) : "—";
+      $("adminViewDepartment").innerHTML = activeDepartments().map(d => `<option value="${d.name}">${d.name}</option>`).join("");
+      $("adminViewDepartment").value = store.department;
+      $("departmentRows").innerHTML = store.departments.map(d => `<tr>
+        <td><b>${d.name}</b></td><td><span class="status-pill ${d.status === "Inactive" ? "inactive" : ""}">${d.status}</span></td>
+        <td>${formatStamp(d.passwordUpdatedAt)}</td><td>${d.createdBy || "Admin"}</td><td>${formatStamp(d.createdAt)}</td><td>${formatStamp(d.updatedAt)}</td>
+        <td><button class="link-btn" data-edit-department="${d.id}">Edit</button> · <button class="link-btn" data-reset-department="${d.id}">Reset Password</button> · <button class="link-btn" data-toggle-department="${d.id}">${d.status === "Active" ? "Deactivate" : "Reactivate"}</button> · <button class="link-btn" data-delete-department="${d.id}">Delete</button></td>
+      </tr>`).join("");
+      document.querySelectorAll("[data-edit-department]").forEach(b => b.addEventListener("click", () => editDepartment(b.dataset.editDepartment)));
+      document.querySelectorAll("[data-reset-department]").forEach(b => b.addEventListener("click", () => resetDepartmentPassword(b.dataset.resetDepartment)));
+      document.querySelectorAll("[data-toggle-department]").forEach(b => b.addEventListener("click", () => toggleDepartment(b.dataset.toggleDepartment)));
+      document.querySelectorAll("[data-delete-department]").forEach(b => b.addEventListener("click", () => deleteDepartment(b.dataset.deleteDepartment)));
+    }
+
+    function editDepartment(id = "") {
+      const d = store.departments.find(x => x.id === id);
+      $("departmentEditId").value = d?.id || "";
+      $("departmentName").value = d?.name || "";
+      $("departmentPassword").value = "";
+      $("departmentStatus").value = d?.status || "Active";
+    }
+
+    function resetDepartmentPassword(id) {
+      const d = store.departments.find(x => x.id === id);
+      if (!d) return;
+      const password = prompt(`Enter a new password for ${d.name}:`);
+      if (!password) return;
+      d.password = password; d.passwordUpdatedAt = new Date().toISOString(); d.updatedAt = d.passwordUpdatedAt;
+      audit("DEPARTMENT_PASSWORD_RESET", "department", d.id);
+      persist(); refreshLoginOptions(); renderDepartmentManager();
+    }
+
+    function toggleDepartment(id) {
+      const d = store.departments.find(x => x.id === id);
+      if (!d) return;
+      if (d.status === "Active" && !confirm(`Deactivate department "${d.name}"? Department users will no longer be able to sign in.`)) return;
+      d.status = d.status === "Active" ? "Inactive" : "Active"; d.updatedAt = new Date().toISOString();
+      audit(d.status === "Active" ? "DEPARTMENT_REACTIVATE" : "DEPARTMENT_DEACTIVATE", "department", d.id);
+      persist(); refreshLoginOptions(); renderDepartmentManager();
+    }
+
+    function deleteDepartment(id) {
+      const d = store.departments.find(x => x.id === id);
+      if (!d) return;
+      if (hasDepartmentHistory(d.name)) {
+        d.status = "Inactive"; d.updatedAt = new Date().toISOString(); persist(); refreshLoginOptions(); renderDepartmentManager();
+        return alert("This department has historical data and was deactivated instead of deleted.");
+      }
+      if (!confirm(`Delete ${d.name}?`)) return;
+      store.departments = store.departments.filter(x => x.id !== id); persist(); refreshLoginOptions(); renderDepartmentManager();
+    }
+
+    function departmentShifts() {
+      if (!store.shiftDefinitions[store.department]) {
+        store.shiftDefinitions[store.department] = defaultShifts.map(s => ({...s}));
+        persist();
+      }
+      store.shiftDefinitions[store.department].forEach((s, i) => {
+        s.code ||= `Shift ${Number(String(s.name || "").replace(/\D/g, "")) || i + 1}`;
+        s.displayName ??= s.name && s.name !== s.code ? s.name : "";
+        s.id ||= `shift-${i + 1}`;
+      });
+      return store.shiftDefinitions[store.department];
+    }
+
+    function renderPlannerOptions() {
+      const selectedGroup = store.selectedGroupId || $("bulkGroup").value;
+      const selectedShift = $("bulkShift").value;
+      $("bulkGroup").innerHTML = `<option value="">All Active Employees</option>${Object.entries(employeeGroups()).map(([id,g]) => `<option value="${id}">${g.label} (${g.ids.length})</option>`).join("")}`;
+      $("bulkShift").innerHTML = departmentShifts().map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`).join("");
+      if (employeeGroups()[selectedGroup]) $("bulkGroup").value = selectedGroup;
+      else store.selectedGroupId = "";
+      if (departmentShifts().some(s => s.id === selectedShift)) $("bulkShift").value = selectedShift;
+      $("savedShifts").innerHTML = departmentShifts().map(s => `<button type="button" class="saved-shift" data-edit-shift="${s.id}"><b>${shiftDisplay(s)}</b></button>`).join("");
+      document.querySelectorAll("[data-edit-shift]").forEach(button => button.addEventListener("click", () => openShiftEditor(button.dataset.editShift)));
+    }
+
+    function dashboardDates() {
+      const start = parseDate($("startDate").value);
+      if (store.dashboardView === "week") {
+        const monday = addDays(start, -((start.getDay() + 6) % 7));
+        return Array.from({length: 7}, (_, i) => addDays(monday, i));
+      }
+      const base = new Date(start.getFullYear(), start.getMonth(), 1);
+      return Array.from({length: new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate()}, (_, i) => addDays(base, i));
+    }
+
+    function renderDashboard() {
+      const dates = dashboardDates();
+      const selectedGroup = employeeGroups()[$("bulkGroup").value];
+      const departmentEligible = departmentEmployees().filter(e => dates.some(d => isEligibleOn(e, iso(d))));
+      const scopedPeople = selectedGroup ? departmentEligible.filter(e => selectedGroup.ids.includes(e.id)) : departmentEligible;
+      const entries = scopedPeople.flatMap(e => dates.map(d => store.entries[keyFor(e.id, iso(d))] || {type:"unassigned"}));
+      const shifts = {};
+      scopedPeople.forEach(employee => dates.forEach(date => {
+        const entry = store.entries[keyFor(employee.id, iso(date))] || {};
+        if (["full","half"].includes(entry.type) && entry.start && entry.end) {
+          const shift = departmentShifts().find(s => s.id === entry.shiftId);
+          const label = shift ? compactCode(shift) : entry.shiftCode || `${entry.start}–${entry.end}`;
+          (shifts[label] ||= new Set()).add(employee.id);
+        }
+      }));
+      $("dashboardPeriod").textContent = `${store.department} · ${store.dashboardView === "week" ? "selected 7 days" : fmt(dates[0], {month:"long", year:"numeric"})}`;
+      $("rosterMetrics").innerHTML = [
+        ["Active Employees", scopedPeople.length],
+        ["Assigned slots", entries.filter(e => (e.type || "unassigned") !== "unassigned").length],
+        ["Unassigned slots", entries.filter(e => e.type === "unassigned").length],
+        ["Week offs", entries.filter(e => e.type === "off").length],
+      ].map(([label,value]) => `<div class="metric"><span>${label}</span><strong>${value}</strong></div>`).join("");
+      $("attendanceMetrics").innerHTML = [
+        ["Attendance marked", entries.filter(e => ["Present","Absent","Half Day","Leave"].includes(e.attendance)).length],
+        ["Attendance pending", entries.filter(e => ["full","half","weekend","other"].includes(e.type) && !e.attendance).length],
+        ["Present", entries.filter(e => e.attendance === "Present").length],
+        ["Absent", entries.filter(e => e.attendance === "Absent").length],
+        ["Half day", entries.filter(e => e.attendance === "Half Day").length],
+        ["Leave", entries.filter(e => e.attendance === "Leave").length]
+      ].map(([label,value]) => `<div class="metric"><span>${label}</span><strong>${value}</strong></div>`).join("");
+      const shiftRows = Object.entries(shifts).map(([shift, ids]) => [shift, ids.size]).sort((a,b) => b[1] - a[1]);
+      $("shiftBreakdown").innerHTML = shiftRows.length
+        ? `<strong>Shift-wise headcount:</strong>${shiftRows.map(([shift,count]) => `<span class="shift-chip">${shift}: <b>${count}</b></span>`).join("")}`
+        : `<span class="hint">No shifts have been assigned for this ${store.dashboardView} yet.</span>`;
+    }
+
+    function entryButton(employee, date) {
+      const dateKey = iso(date);
+      const entry = store.entries[keyFor(employee.id, dateKey)] || { type: "unassigned" };
+      const time = ["full", "half"].includes(entry.type) && entry.start ? `${entry.start}–${entry.end || "?"}` : "";
+      const savedShift = departmentShifts().find(s => s.id === entry.shiftId);
+      const attendance = entry.attendance || "Attendance not marked";
+      const planned = savedShift ? compactCode(savedShift) : labels[entry.type];
+      if (entry.type === "off") return `<td class="shift-cell"><button class="shift off" data-employee="${employee.id}" data-date="${dateKey}"><span class="type">Week Off</span><span class="attendance">Attendance not required</span></button></td>`;
+      return `<td class="shift-cell"><button class="shift ${entry.type}" data-employee="${employee.id}" data-date="${dateKey}">
+        <span class="type">${planned}</span>${time ? `<span class="time">${time}</span>` : ""}<span class="attendance">${attendance}</span>
+      </button></td>`;
+    }
+
+    function render() {
+      if (!store.department) return;
+      renderPlannerOptions();
+      const dates = datesForView();
+      const employees = visibleEmployees();
+      const first = dates[0], last = dates.at(-1);
+      $("rangeTitle").textContent = store.view === "day" ? fmt(first, {weekday:"long", day:"numeric", month:"long", year:"numeric"}) :
+        `${fmt(first, {day:"numeric", month:"short"})} – ${fmt(last, {day:"numeric", month:"short", year:"numeric"})}`;
+      renderDashboard();
+      if (!employees.length) {
+        $("tableWrap").innerHTML = `<div class="empty">No employees match this department and search.</div>`;
+        return;
+      }
+      $("tableWrap").innerHTML = `<table><thead><tr><th>Employee</th>${dates.map(d => `<th>${fmt(d,{weekday:"short"})}<br>${fmt(d,{day:"2-digit",month:"short"})}</th>`).join("")}</tr></thead>
+        <tbody>${employees.map(e => `<tr><td class="person"><strong>${e.name}</strong><span>${e.id} · ${e.department}</span><span>Status: ${e.status || "Active"}</span><div class="person-actions"><button class="link-btn" data-status-employee="${e.id}">Change Employee Status</button></div></td>${dates.map(d => entryButton(e,d)).join("")}</tr>`).join("")}</tbody></table>`;
+      document.querySelectorAll(".shift").forEach(btn => btn.addEventListener("click", () => openShift(btn.dataset.employee, btn.dataset.date)));
+      document.querySelectorAll("[data-status-employee]").forEach(btn => btn.addEventListener("click", () => openStatusEditor(btn.dataset.statusEmployee)));
+    }
+
+    function openShift(employeeId, date) {
+      store.selected = { employeeId, date };
+      const employee = store.employees.find(e => e.id === employeeId);
+      if (!employee || employee.department !== store.department) return;
+      const entry = store.entries[keyFor(employeeId, date)] || { type: "unassigned", attendance: "" };
+      $("shiftModalTitle").textContent = "Edit roster entry";
+      $("shiftModalSubtitle").textContent = `${employee.name} · ${fmt(parseDate(date), {weekday:"long", day:"numeric", month:"long"})}`;
+      $("assignmentShift").innerHTML = [
+        ...departmentShifts().map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`),
+        `<option value="off">Week Off</option><option value="weekend">Weekend</option><option value="other">Other Time</option><option value="unassigned">Unassigned</option>`
+      ].join("");
+      const matchingShift = departmentShifts().find(s => s.start === entry.start && s.end === entry.end);
+      $("assignmentShift").value = entry.shiftId || matchingShift?.id || (["off","weekend","other","unassigned"].includes(entry.type) ? entry.type : "unassigned");
+      $("attendance").value = ["Present","Absent","Half Day","Leave"].includes(entry.attendance) ? entry.attendance : "";
+      $("notes").value = entry.notes || "";
+      $("shiftModal").classList.add("open");
+    }
+
+    function openShiftEditor(shiftId) {
+      const shift = departmentShifts().find(s => s.id === shiftId);
+      if (!shift) return;
+      store.editingShiftId = shiftId;
+      $("editShiftCode").textContent = shift.code;
+      $("editShiftName").value = shift.displayName || "";
+      $("editShiftStart").value = shift.start;
+      $("editShiftEnd").value = shift.end;
+      $("editShiftRemark").value = shift.remark || "";
+      $("editShiftScope").value = "future";
+      $("editShiftModal").classList.add("open");
+    }
+
+    function updateAssignedEntries(shiftId, updated, scope) {
+      const today = iso(new Date());
+      Object.entries(store.entries).forEach(([key, entry]) => {
+        const employee = store.employees.find(e => key.startsWith(`${e.id}|`));
+        const date = key.split("|")[1];
+        if (entry.shiftId !== shiftId || employee?.department !== store.department) return;
+        if (scope === "future" && date < today) return;
+        Object.assign(entry, { shiftCode: updated.code, shiftDisplayName: updated.displayName, type: updated.type, start: updated.start, end: updated.end });
+      });
+    }
+
+    function allocatedEmployeeIds(excludeGroupId = "") {
+      return new Set(departmentGroups().filter(g => g.active !== false && g.id !== excludeGroupId).flatMap(g => g.employeeIds || []));
+    }
+
+    function currentGroupMode() {
+      const group = departmentGroups().find(g => g.id === store.editingGroupId);
+      if (!group) return "create";
+      return group.active === false ? "inactive" : "update";
+    }
+
+    function setGroupManagerMode() {
+      const mode = currentGroupMode();
+      const isCreate = mode === "create";
+      const isInactive = mode === "inactive";
+      $("groupStatus").textContent = isCreate ? "New Group" : isInactive ? "Inactive" : "Active";
+      $("groupStatus").className = `group-status ${isInactive ? "inactive" : "active"}`;
+      $("groupName").disabled = isInactive;
+      $("groupEmployeeSearch").disabled = isInactive;
+      $("availableEmployeesSection").classList.toggle("is-hidden", isInactive);
+      $("deactivateGroupBtn").classList.toggle("is-hidden", isCreate);
+      $("deactivateGroupBtn").textContent = isInactive ? "Reactivate Group" : "Deactivate Group";
+      $("deactivateGroupBtn").classList.toggle("danger", !isInactive);
+      $("deactivateGroupBtn").classList.toggle("primary", isInactive);
+      $("newGroupBtn").textContent = isCreate ? "Clear" : "Create New Group";
+      $("saveGroupBtn").textContent = isCreate ? "Save New Group" : "Update Group";
+      $("saveGroupBtn").classList.toggle("is-hidden", isInactive);
+      $("groupInstruction").textContent = isCreate
+        ? "Create mode: enter a group name, add available employees, then click Save New Group."
+        : isInactive
+          ? "Reference mode: this group is inactive and cannot be edited or used for roster assignment. Historical roster data remains unchanged."
+          : "Update mode: edit the group name, add or remove employees, then click Update Group.";
+    }
+
+    function renderGroupEmployees() {
+      const search = $("groupEmployeeSearch").value.trim().toLowerCase();
+      const active = departmentEmployees().filter(isActiveGroupCandidate);
+      const group = departmentGroups().find(g => g.id === store.editingGroupId);
+      const inactive = group?.active === false;
+      const current = departmentEmployees().filter(e => store.groupMembers.has(e.id) && (!search || `${e.name} ${e.id}`.toLowerCase().includes(search)));
+      const allocatedElsewhere = allocatedEmployeeIds(store.editingGroupId);
+      const pending = active.filter(e => !store.groupMembers.has(e.id) && !allocatedElsewhere.has(e.id) && (!search || `${e.name} ${e.id}`.toLowerCase().includes(search)));
+      $("currentMembersSection").style.display = "grid";
+      $("currentMembersTitle").textContent = "Group Members";
+      $("currentMemberCount").textContent = `${store.groupMembers.size} employee${store.groupMembers.size === 1 ? "" : "s"}`;
+      $("currentMemberList").innerHTML = current.length
+        ? current.map(e => `<div class="check-row"><span><b>${e.name}</b> · ${e.id}</span>${inactive ? "" : `<button type="button" class="link-btn member-remove" data-remove-member="${e.id}">Remove</button>`}</div>`).join("")
+        : `<div class="empty">No employees added to this group yet.</div>`;
+      $("pendingEmployeeTitle").textContent = "Available Employees";
+      $("pendingEmployeeCount").textContent = `${pending.length} available`;
+      $("pendingEmployeeList").innerHTML = pending.length
+        ? `<table class="employee-table"><thead><tr><th>Add</th><th>Employee Name</th><th>Employee ID</th></tr></thead><tbody>${pending.map(e => `<tr><td><button type="button" class="btn secondary" data-add-member="${e.id}">Add</button></td><td><b>${e.name}</b></td><td>${e.id}</td></tr>`).join("")}</tbody></table>`
+        : `<div class="empty">No unallocated employees available.</div>`;
+      document.querySelectorAll("[data-remove-member]").forEach(button => button.addEventListener("click", () => {
+        const employee = store.employees.find(e => e.id === button.dataset.removeMember);
+        if (!confirm(`Remove ${employee?.name || "this employee"} from the employee group?`)) return;
+        store.groupMembers.delete(button.dataset.removeMember);
+        renderGroupEmployees();
+      }));
+      document.querySelectorAll("[data-add-member]").forEach(button => button.addEventListener("click", () => {
+        store.groupMembers.add(button.dataset.addMember);
+        renderGroupEmployees();
+      }));
+      setGroupManagerMode();
+    }
+
+    function openGroupManager(groupId = "") {
+      const groups = departmentGroups();
+      $("groupSelect").innerHTML = `<option value="">Create New Group</option>${groups.map(g => `<option value="${g.id}">${g.name} (${g.employeeIds.length}) · ${g.active === false ? "Inactive" : "Active"}</option>`).join("")}`;
+      store.editingGroupId = groupId;
+      $("groupSelect").value = groupId;
+      $("groupEmployeeSearch").value = "";
+      const group = groups.find(g => g.id === groupId);
+      store.groupMembers = new Set(group?.employeeIds || []);
+      $("groupName").value = group?.name || "";
+      renderGroupEmployees();
+      $("groupModal").classList.add("open");
+    }
+
+    function openStatusEditor(employeeId = "") {
+      const employees = departmentEmployees();
+      $("statusEmployeeSelect").innerHTML = employees.map(e => `<option value="${e.id}">${e.name} · ${e.id} · ${e.status || "Active"}</option>`).join("");
+      const employee = employees.find(e => e.id === employeeId) || employees[0];
+      if (!employee) return;
+      store.statusEmployeeId = employee.id;
+      $("statusEmployeeSelect").value = employee.id;
+      $("statusEmployeeName").textContent = `${employee.name} · ${employee.id}`;
+      $("employeeStatus").value = employee.status === "Resigned" ? "Exited" : (employee.status || "Active");
+      $("statusEffectiveDate").value = employee.statusEffectiveDate || iso(new Date());
+      $("statusRemark").value = "";
+      $("statusModal").classList.add("open");
+    }
+
+    function closeModals() { document.querySelectorAll(".modal-backdrop").forEach(m => m.classList.remove("open")); }
+
+    $("shiftForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const assignment = $("assignmentShift").value;
+      const savedShift = departmentShifts().find(s => s.id === assignment);
+      const markedAt = new Date().toISOString();
+      const entry = savedShift
+        ? { shiftId: savedShift.id, shiftCode: savedShift.code, shiftDisplayName: savedShift.displayName, type: savedShift.type, start: savedShift.start, end: savedShift.end, attendance: $("attendance").value, notes: $("notes").value.trim(), markedBy: `${store.department} TL`, markedAt }
+        : { type: assignment, start: "", end: "", attendance: assignment === "off" ? "Week Off" : $("attendance").value, notes: $("notes").value.trim(), markedBy: `${store.department} TL`, markedAt };
+      store.entries[keyFor(store.selected.employeeId, store.selected.date)] = entry;
+      audit("MANUAL_ROSTER_UPDATE", "roster_entry", keyFor(store.selected.employeeId, store.selected.date), `Roster: ${entry.type}; Attendance: ${entry.attendance || "Not Marked"}`);
+      persist(); closeModals(); render();
+    });
+    $("editShiftForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const current = departmentShifts().find(s => s.id === store.editingShiftId);
+      if (!current) return;
+      const start = $("editShiftStart").value;
+      const end = $("editShiftEnd").value;
+      const startMinutes = Number(start.slice(0,2)) * 60 + Number(start.slice(3));
+      const endMinutes = Number(end.slice(0,2)) * 60 + Number(end.slice(3));
+      if (endMinutes <= startMinutes) return alert("Shift end must be later than shift start.");
+      const scope = $("editShiftScope").value;
+      const updated = { ...current, displayName: $("editShiftName").value.trim(), start, end, type: endMinutes - startMinutes <= 300 ? "half" : "full", remark: $("editShiftRemark").value.trim() };
+      if (scope === "new") {
+        const number = nextShiftNumber();
+        departmentShifts().push({ ...updated, id: `shift-${Date.now()}`, code: `Shift ${number}` });
+      } else {
+        Object.assign(current, updated);
+        updateAssignedEntries(current.id, current, scope);
+      }
+      audit("SHIFT_UPDATE", "shift", current.id, `Scope: ${scope}`);
+      persist(); closeModals(); render();
+    });
+    $("clearEntry").addEventListener("click", () => {
+      delete store.entries[keyFor(store.selected.employeeId, store.selected.date)];
+      audit("ROSTER_ENTRY_CLEAR", "roster_entry", keyFor(store.selected.employeeId, store.selected.date));
+      persist(); closeModals(); render();
+    });
+    $("employeeForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const employee = { id: $("employeeId").value.trim(), name: $("employeeName").value.trim(), department: $("employeeDepartment").value.trim() };
+      employee.department = store.department;
+      employee.status = "Active";
+      if (store.employees.some(e => e.id.toLowerCase() === employee.id.toLowerCase())) return alert("Employee ID already exists.");
+      store.employees.push(employee); audit("EMPLOYEE_CREATE", "employee", employee.id); persist(); $("employeeForm").reset(); closeModals(); render();
+      render();
+    });
+    function saveEmployeeGroup() {
+      const groups = departmentGroups();
+      let group = groups.find(g => g.id === store.editingGroupId);
+      if (group?.active === false) return alert("Inactive employee groups are available for reference only.");
+      const employeeIds = [...store.groupMembers];
+      const name = $("groupName").value.trim();
+      if (!name) return alert("Group name is mandatory.");
+      if (!employeeIds.length) return alert("At least one employee is required to save an active group.");
+      const allocatedElsewhere = allocatedEmployeeIds(group?.id || "");
+      if (employeeIds.some(id => allocatedElsewhere.has(id))) return alert("This employee is already part of another active employee group.");
+      const action = group ? "EMPLOYEE_GROUP_UPDATE" : "EMPLOYEE_GROUP_CREATE";
+      if (group) {
+        group.name = name;
+        group.employeeIds = employeeIds;
+        group.active = true;
+      } else {
+        group = { id: `group-${Date.now()}`, name, employeeIds, active: true };
+        groups.push(group);
+      }
+      audit(action, "employee_group", group.id, `${employeeIds.length} employees`);
+      group.createdAt ||= new Date().toISOString();
+      group.updatedAt = new Date().toISOString();
+      store.selectedGroupId = group.id;
+      persist(); closeModals(); render();
+    }
+    $("groupForm").addEventListener("submit", e => { e.preventDefault(); saveEmployeeGroup(); });
+    $("statusForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const employee = store.employees.find(x => x.id === store.statusEmployeeId && x.department === store.department);
+      if (!employee) return;
+      const nextStatus = $("employeeStatus").value;
+      if (["Exited","Absconded","Inactive"].includes(nextStatus) && !confirm(`Change ${employee.name} to ${nextStatus}? Future roster visibility will be affected.`)) return;
+      employee.status = nextStatus;
+      employee.statusEffectiveDate = $("statusEffectiveDate").value;
+      employee.statusRemark = $("statusRemark").value.trim();
+      employee.statusUpdatedBy = `${store.department} TL`;
+      employee.statusUpdatedAt = new Date().toISOString();
+      (employee.statusHistory ||= []).push({ status: employee.status, effectiveDate: employee.statusEffectiveDate, remark: employee.statusRemark, updatedBy: employee.statusUpdatedBy, updatedAt: employee.statusUpdatedAt });
+      audit("EMPLOYEE_STATUS_CHANGE", "employee", employee.id, `${employee.status} effective ${employee.statusEffectiveDate}`);
+      persist(); closeModals(); render();
+    });
+    $("addShiftForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const start = $("newShiftStart").value;
+      const end = $("newShiftEnd").value;
+      const startMinutes = Number(start.slice(0,2)) * 60 + Number(start.slice(3));
+      const endMinutes = Number(end.slice(0,2)) * 60 + Number(end.slice(3));
+      const duration = endMinutes - startMinutes;
+      if (duration <= 0) return alert("Shift end must be later than shift start.");
+      const number = nextShiftNumber();
+      departmentShifts().push({
+        id: `shift-${Date.now()}`, code: `Shift ${number}`,
+        displayName: $("newShiftName").value.trim(),
+        type: duration <= 300 ? "half" : "full",
+        start,
+        end,
+        remark: $("newShiftRemark").value.trim()
+      });
+      audit("SHIFT_CREATE", "shift", `shift-${number}`, `Shift ${number} ${start}-${end}`);
+      persist();
+      $("addShiftForm").reset();
+      render();
+    });
+    $("applyTemplateBtn").addEventListener("click", () => {
+      const group = employeeGroups()[$("bulkGroup").value];
+      const shift = departmentShifts().find(s => s.id === $("bulkShift").value);
+      const from = parseDate($("bulkFrom").value);
+      const to = parseDate($("bulkTo").value);
+      const weekOff = $("bulkWeekOff").value;
+      if (!group || !shift || !from || !to || from > to) return alert("Choose a valid employee group, shift, and date range.");
+      for (let date = new Date(from); date <= to; date = addDays(date, 1)) {
+        const isOff = weekOff !== "" && date.getDay() === Number(weekOff);
+        group.ids.forEach(employeeId => {
+          const employee = store.employees.find(e => e.id === employeeId);
+          if (!employee || !isEligibleOn(employee, iso(date))) return;
+          store.entries[keyFor(employeeId, iso(date))] = isOff
+            ? { type: "off", start: "", end: "", attendance: "Week Off", notes: "Applied from deployment template", markedBy: `${store.department} TL`, markedAt: new Date().toISOString() }
+            : { shiftId: shift.id, shiftCode: shift.code, shiftDisplayName: shift.displayName, type: shift.type, start: shift.start, end: shift.end, attendance: "", notes: "Applied from deployment template", markedBy: `${store.department} TL`, markedAt: new Date().toISOString() };
+        });
+      }
+      audit("ROSTER_APPLY", "employee_group", $("bulkGroup").value, `${$("bulkFrom").value} to ${$("bulkTo").value}`);
+      persist(); render();
+    });
+    $("clearRosterBtn").addEventListener("click", () => {
+      const group = employeeGroups()[$("bulkGroup").value];
+      const from = parseDate($("bulkFrom").value);
+      const to = parseDate($("bulkTo").value);
+      if (!group || !from || !to || from > to) return alert("Choose a valid employee group and date range.");
+      const keys = [];
+      for (let date = new Date(from); date <= to; date = addDays(date, 1)) {
+        group.ids.forEach(employeeId => {
+          const key = keyFor(employeeId, iso(date));
+          if (store.entries[key]) keys.push(key);
+        });
+      }
+      if (!keys.length) return alert("No roster assignments found for the selected group and date range.");
+      const marked = keys.filter(key => ["Present","Absent","Half Day","Leave"].includes(store.entries[key]?.attendance));
+      const initial = confirm("You are about to clear roster assignments for selected group and date range. Attendance data, if already marked, may also be affected. Do you want to continue?");
+      if (!initial) return;
+      let clearAttendance = false;
+      if (marked.length) {
+        clearAttendance = confirm("Attendance is already marked for some entries. Clearing roster may impact attendance records. Click OK to clear roster and attendance, or Cancel to clear roster only.");
+      }
+      keys.forEach(key => {
+        const attendance = clearAttendance ? "" : (store.entries[key].attendance || "");
+        const notes = store.entries[key].notes || "";
+        store.entries[key] = { type: "unassigned", attendance, notes, markedBy: `${store.department} TL`, markedAt: new Date().toISOString() };
+      });
+      audit("ROSTER_CLEAR", "employee_group", $("bulkGroup").value, `${keys.length} entries; attendance cleared: ${clearAttendance}`);
+      persist(); render();
+    });
+    $("exportBtn").addEventListener("click", () => {
+      const rows = [["Department","Employee Name","Employee ID","Employee Status","Employee Group","Date","Day","View Week","Month","Roster Status","Shift Code","Shift Display Name","Start Time","End Time","Attendance Status","Remark","Created By","Created At","Updated By","Updated At","Sync Status"]];
+      const exportEmployees = store.accessLevel === "admin" ? store.employees : departmentEmployees();
+      exportEmployees.forEach(e => Object.entries(store.entries).filter(([k]) => k.startsWith(`${e.id}|`)).forEach(([k,v]) => {
+        const date = k.split("|")[1];
+        const shift = (store.shiftDefinitions[e.department] || []).find(s => s.id === v.shiftId);
+        const group = (store.deploymentGroups[e.department] || []).find(g => (g.employeeIds || []).includes(e.id));
+        const d = parseDate(date); const monday = addDays(d, -((d.getDay() + 6) % 7)); const sunday = addDays(monday, 6);
+        rows.push([e.department,e.name,e.id,e.status||"Active",group?.name||"",date,fmt(d,{weekday:"long"}),`${iso(monday)} to ${iso(sunday)}`,fmt(d,{month:"long",year:"numeric"}),labels[v.type]||v.type||"",shift?.code||v.shiftCode||"",shift?.displayName||v.shiftDisplayName||"",v.start||"",v.end||"",v.attendance||"Not Marked",v.notes||"",v.createdBy||v.markedBy||"",v.createdAt||v.markedAt||"",v.markedBy||"",v.markedAt||"",store.syncConfig?.syncState||"Pending Sync"]);
+      }));
+      const csv = rows.map(r => r.map(v => `"${String(v).replaceAll('"','""')}"`).join(",")).join("\n");
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"})); a.download = `at-roster-${store.accessLevel === "admin" ? "all-departments" : store.department.toLowerCase()}-${iso(new Date())}.csv`; a.click();
+    });
+    document.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModals));
+    document.querySelectorAll(".modal-backdrop").forEach(m => m.addEventListener("click", e => { if (e.target === m) closeModals(); }));
+    document.querySelectorAll("[data-view]").forEach(b => b.addEventListener("click", () => {
+      store.view = b.dataset.view; document.querySelectorAll("[data-view]").forEach(x => x.classList.toggle("active", x === b)); render();
+    }));
+    $("startDate").addEventListener("change", render);
+    $("bulkGroup").addEventListener("change", () => { store.selectedGroupId = $("bulkGroup").value; render(); });
+    $("search").addEventListener("input", render);
+    $("todayBtn").addEventListener("click", () => { $("startDate").value = iso(new Date()); render(); });
+    $("addEmployeeBtn").addEventListener("click", () => { $("employeeDepartment").value = store.department; $("employeeDepartment").readOnly = true; $("employeeModal").classList.add("open"); });
+    $("sheetSyncBtn").addEventListener("click", openSyncSettings);
+    $("syncNowBtn").addEventListener("click", () => saveToBackend(true));
+    $("syncForm").addEventListener("submit", e => {
+      e.preventDefault();
+      closeModals();
+      saveToBackend(true);
+    });
+    $("manageStatusBtn").addEventListener("click", () => openStatusEditor());
+    $("navEmployeesBtn").addEventListener("click", () => openStatusEditor());
+    $("navSettingsBtn").addEventListener("click", () => {
+      if (store.accessLevel !== "admin") return;
+      editDepartment(); renderDepartmentManager(); $("departmentModal").classList.add("open");
+    });
+    $("statusEmployeeSelect").addEventListener("change", () => openStatusEditor($("statusEmployeeSelect").value));
+    $("manageGroupsBtn").addEventListener("click", e => { e.preventDefault(); openGroupManager(); });
+    $("groupSelect").addEventListener("change", () => openGroupManager($("groupSelect").value));
+    $("groupEmployeeSearch").addEventListener("input", renderGroupEmployees);
+    $("newGroupBtn").addEventListener("click", () => openGroupManager());
+    $("saveGroupBtn").addEventListener("click", saveEmployeeGroup);
+    $("deactivateGroupBtn").addEventListener("click", () => {
+      const group = departmentGroups().find(g => g.id === store.editingGroupId);
+      if (!group) return;
+      if (group.active === false) {
+        const ineligibleMembers = (group.employeeIds || []).map(id => store.employees.find(e => e.id === id)).filter(e => !e || !isActiveGroupCandidate(e));
+        if (ineligibleMembers.length) return alert("This group cannot be reactivated because one or more members are not Active. Create a new group with available active employees instead.");
+        const allocatedElsewhere = allocatedEmployeeIds(group.id);
+        if ((group.employeeIds || []).some(id => allocatedElsewhere.has(id))) return alert("This group cannot be reactivated because one or more employees are already part of another active employee group.");
+        group.active = true;
+        group.updatedAt = new Date().toISOString();
+        audit("EMPLOYEE_GROUP_REACTIVATE", "employee_group", group.id);
+        persist(); closeModals(); render();
+        return;
+      }
+      if (!confirm("You are about to deactivate this employee group. It will not be available for future roster assignment, but historical roster data will remain unchanged.")) return;
+      group.active = false;
+      group.updatedAt = new Date().toISOString();
+      if (store.selectedGroupId === group.id) store.selectedGroupId = "";
+      audit("EMPLOYEE_GROUP_DEACTIVATE", "employee_group", group.id);
+      persist(); closeModals(); render();
+    });
+    $("manageDepartmentsBtn").addEventListener("click", () => {
+      editDepartment(); renderDepartmentManager(); $("departmentModal").classList.add("open");
+    });
+    $("newDepartmentBtn").addEventListener("click", () => editDepartment());
+    $("adminViewDepartment").addEventListener("change", async () => {
+      store.department = $("adminViewDepartment").value;
+      sessionStorage.setItem("lt-department", store.department);
+      setAccessUi(); closeModals();
+      await refreshFromBackend();
+      render();
+    });
+    $("departmentForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const id = $("departmentEditId").value;
+      const existing = store.departments.find(d => d.id === id);
+      const name = $("departmentName").value.trim();
+      const password = $("departmentPassword").value;
+      if (!name) return alert("Department name is required.");
+      if (store.departments.some(d => d.id !== id && d.name.toLowerCase() === name.toLowerCase())) return alert("Department name already exists.");
+      const now = new Date().toISOString();
+      if (existing) {
+        const oldName = existing.name;
+        if (oldName !== name) {
+          store.employees.filter(x => x.department === oldName).forEach(x => x.department = name);
+          store.shiftDefinitions[name] = store.shiftDefinitions[oldName] || []; delete store.shiftDefinitions[oldName];
+          store.deploymentGroups[name] = store.deploymentGroups[oldName] || []; delete store.deploymentGroups[oldName];
+          if (store.department === oldName) store.department = name;
+        }
+        existing.name = name; existing.status = $("departmentStatus").value; existing.updatedAt = now;
+        if (password) { existing.password = password; existing.passwordUpdatedAt = now; }
+      } else {
+        if (!password) return alert("Password is required for a new department.");
+        store.departments.push({ id:`dep-${Date.now()}`, name, password, status:$("departmentStatus").value, passwordUpdatedAt:now, createdBy:"Admin", createdAt:now, updatedAt:now });
+      }
+      audit(existing ? "DEPARTMENT_UPDATE" : "DEPARTMENT_CREATE", "department", existing?.id || name);
+      persist(); refreshLoginOptions(); editDepartment(); renderDepartmentManager(); setAccessUi(); render();
+    });
+    document.querySelectorAll("[data-dashboard]").forEach(b => b.addEventListener("click", () => {
+      store.dashboardView = b.dataset.dashboard;
+      document.querySelectorAll("[data-dashboard]").forEach(x => x.classList.toggle("active", x === b));
+      renderDashboard();
+    }));
+    $("logoutBtn").addEventListener("click", () => {
+      sessionStorage.removeItem("lt-department");
+      sessionStorage.removeItem("at-access-level");
+      sessionStorage.removeItem("at-backend-session");
+      store.department = "";
+      store.accessLevel = "department";
+      store.backendSession = "";
+      document.body.classList.remove("admin-mode");
+      $("loginPassword").value = "";
+      $("loginScreen").classList.remove("hidden");
+    });
+    $("loginForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      const selected = $("loginDepartment").value;
+      const isAdmin = selected === "__admin__";
+      const departmentRecord = store.departments.find(d => d.id === selected && d.status === "Active");
+      const valid = isAdmin
+        ? $("loginPassword").value === ADMIN_PASSWORD
+        : departmentRecord && $("loginPassword").value === departmentRecord.password;
+      if (!valid) {
+        $("loginError").textContent = "Incorrect password or inactive department.";
+        return;
+      }
+      store.accessLevel = isAdmin ? "admin" : "department";
+      store.department = isAdmin ? (activeDepartments()[0]?.name || "") : departmentRecord.name;
+      sessionStorage.setItem("lt-department", store.department);
+      sessionStorage.setItem("at-access-level", store.accessLevel);
+      setAccessUi();
+      $("loginError").textContent = "";
+      $("loginPassword").value = "";
+      $("loginScreen").classList.add("hidden");
+      await refreshFromBackend();
+      render();
+    });
+
+    $("startDate").value = iso(new Date());
+    $("bulkFrom").value = iso(new Date());
+    $("bulkTo").value = iso(addDays(new Date(), 9));
+    refreshLoginOptions();
+    renderSyncBadge();
+    if (store.department && store.departments.some(d => d.name === store.department && (d.status === "Active" || store.accessLevel === "admin"))) {
+      setAccessUi();
+      $("loginScreen").classList.add("hidden");
+      refreshFromBackend().then(render);
+      render();
+    }
+  </script>
+</body>
+</html>

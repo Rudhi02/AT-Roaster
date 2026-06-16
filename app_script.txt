@@ -1,0 +1,223 @@
+const SPREADSHEET_ID = "163gfpXdOx9L1XJ_i24n-QFURqfjRhkImHb4t6apXiSw";
+const ROSTER_TAB = "Employee Roster";
+const EMPLOYEE_TAB = "Employee Master";
+const CONFIG_TAB = "AT Roster Config";
+const ROSTER_HEADERS = [
+  "Employee ID", "Employee Name", "Department", "Sub-department", "Date", "Day",
+  "Shift Code", "Shift Name", "Start Time", "End Time", "Roster Status",
+  "Attendance", "Remark", "Marked By / Updated By", "Last Updated At"
+];
+const EMPLOYEE_HEADERS = ["Employee ID", "Employee Name", "Department", "Status", "Status Effective Date", "Remark", "Updated By", "Updated At"];
+const CONFIG_HEADERS = ["Department", "Shifts JSON", "Groups JSON", "Updated At"];
+
+function setDepartmentTokens() {
+  PropertiesService.getScriptProperties().setProperty("AT_ROSTER_DEPARTMENT_TOKENS", JSON.stringify({
+    "AT-OPS-2026-9kP4xM7q": "Operations",
+    "AT-QUALITY-2026-6nR8vT2z": "Quality",
+    "AT-SUPPORT-2026-3wL7cB5m": "Support",
+    "AT-FINANCE-2026-8yH2dQ4s": "Finance"
+  }));
+}
+
+function setupATRosterSheetBackend() {
+  setDepartmentTokens();
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  formatSheet_(getSheet_(ss, ROSTER_TAB, ROSTER_HEADERS), ROSTER_HEADERS.length);
+  formatSheet_(getSheet_(ss, EMPLOYEE_TAB, EMPLOYEE_HEADERS), EMPLOYEE_HEADERS.length);
+  const config = getSheet_(ss, CONFIG_TAB, CONFIG_HEADERS);
+  formatSheet_(config, CONFIG_HEADERS.length);
+  config.hideSheet();
+}
+
+function doGet() {
+  return json_({ ok: true, service: "AT Roster Sheet Backend", time: new Date().toISOString() });
+}
+
+function doPost(e) {
+  try {
+    const payload = JSON.parse(e.postData.contents || "{}");
+    const department = authorize_(payload.token, payload.department);
+    if (payload.action === "loadDepartment") return json_({ ok: true, ...loadDepartment_(department) });
+    if (payload.action === "saveChanges") return json_({ ok: true, ...saveChanges_(department, payload) });
+    throw new Error("Unsupported action");
+  } catch (error) {
+    return json_({ ok: false, error: error.message });
+  }
+}
+
+function authorize_(token, requestedDepartment) {
+  const tokens = JSON.parse(PropertiesService.getScriptProperties().getProperty("AT_ROSTER_DEPARTMENT_TOKENS") || "{}");
+  const department = tokens[token];
+  if (!department || department !== requestedDepartment) throw new Error("Unauthorized department request");
+  return department;
+}
+
+function loadDepartment_(department) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const employees = readRows_(getSheet_(ss, EMPLOYEE_TAB, EMPLOYEE_HEADERS), EMPLOYEE_HEADERS.length)
+    .filter(row => String(row[2]) === department)
+    .map(row => ({
+      id: String(row[0]), name: String(row[1]), department,
+      status: String(row[3] || "Active"), statusEffectiveDate: dateValue_(row[4]),
+      statusRemark: String(row[5] || ""), statusUpdatedBy: String(row[6] || ""), statusUpdatedAt: dateValue_(row[7])
+    }));
+  const entries = {};
+  readRows_(getSheet_(ss, ROSTER_TAB, ROSTER_HEADERS), ROSTER_HEADERS.length)
+    .filter(row => String(row[2]) === department)
+    .forEach(row => {
+      const type = typeFromStatus_(String(row[10] || "Unassigned"));
+      entries[String(row[0]) + "|" + dateValue_(row[4])] = {
+        type,
+        shiftCode: String(row[6] || ""),
+        shiftDisplayName: String(row[7] || ""),
+        start: String(row[8] || ""),
+        end: String(row[9] || ""),
+        attendance: normalizeAttendance_(String(row[11] || "")),
+        notes: String(row[12] || ""),
+        markedBy: String(row[13] || ""),
+        markedAt: dateValue_(row[14])
+      };
+    });
+  const configRow = readRows_(getSheet_(ss, CONFIG_TAB, CONFIG_HEADERS), CONFIG_HEADERS.length).find(row => String(row[0]) === department);
+  return {
+    department, employees, entries,
+    shifts: configRow ? parseJson_(configRow[1], []) : [],
+    groups: configRow ? parseJson_(configRow[2], []) : [],
+    loadedAt: new Date().toISOString()
+  };
+}
+
+function saveChanges_(department, payload) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const employeeSheet = getSheet_(ss, EMPLOYEE_TAB, EMPLOYEE_HEADERS);
+    upsertEmployees_(employeeSheet, department, payload.employees || []);
+    upsertRosterEntries_(getSheet_(ss, ROSTER_TAB, ROSTER_HEADERS), employeeSheet, department, payload.entries || []);
+    const shifts = Object.prototype.hasOwnProperty.call(payload, "shifts") ? payload.shifts : null;
+    const groups = Object.prototype.hasOwnProperty.call(payload, "groups") ? payload.groups : null;
+    if (shifts !== null || groups !== null) {
+         upsertConfig_(getSheet_(ss, CONFIG_TAB, CONFIG_HEADERS), department, shifts, groups);
+    }
+    return { savedAt: new Date().toISOString(), rowsUpdated: (payload.entries || []).length };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function upsertEmployees_(sheet, department, employees) {
+  const rows = readRows_(sheet, EMPLOYEE_HEADERS.length);
+  const index = new Map(rows.map((row, i) => [String(row[2]) + "|" + String(row[0]), i]));
+  const now = new Date().toISOString();
+  employees.filter(employee => employee.department === department).forEach(employee => {
+    const row = [
+      employee.id, employee.name, department, employee.status || "Active",
+      employee.statusEffectiveDate || "", employee.statusRemark || "",
+      employee.statusUpdatedBy || department + " TL", employee.statusUpdatedAt || now
+    ];
+    const key = department + "|" + employee.id;
+    if (index.has(key)) rows[index.get(key)] = row;
+    else { index.set(key, rows.length); rows.push(row); }
+  });
+  writeRows_(sheet, rows, EMPLOYEE_HEADERS.length);
+}
+
+function upsertRosterEntries_(sheet, employeeSheet, department, changedEntries) {
+  const rows = readRows_(sheet, ROSTER_HEADERS.length);
+  const index = new Map(rows.map((row, i) => [String(row[2]) + "|" + String(row[0]) + "|" + dateValue_(row[4]), i]));
+  const employeeMap = Object.fromEntries(readRows_(employeeSheet, EMPLOYEE_HEADERS.length)
+    .filter(row => String(row[2]) === department)
+    .map(row => [String(row[0]), { id: String(row[0]), name: String(row[1]), department }]));
+  const now = new Date().toISOString();
+  changedEntries.forEach(change => {
+    const employee = employeeMap[change.employeeId];
+    if (!employee) return;
+    const entry = change.entry || {};
+    const row = [
+      employee.id, employee.name, department, employee.subDepartment || "", change.date, dayName_(change.date),
+      entry.shiftCode || "", entry.shiftDisplayName || "", entry.start || "", entry.end || "",
+      rosterStatus_(entry.type), attendanceDisplay_(entry), entry.notes || "",
+      entry.markedBy || department + " TL", entry.markedAt || now
+    ];
+    const key = department + "|" + employee.id + "|" + change.date;
+    if (index.has(key)) rows[index.get(key)] = row;
+    else { index.set(key, rows.length); rows.push(row); }
+  });
+  writeRows_(sheet, rows, ROSTER_HEADERS.length);
+}
+
+function upsertConfig_(sheet, department, shifts, groups) {
+  const rows = readRows_(sheet, CONFIG_HEADERS.length);
+  const index = rows.findIndex(row => String(row[0]) === department);
+  const existing = index >= 0 ? rows[index] : [department, "[]", "[]", ""];
+  const row = [
+    department,
+    shifts === null ? existing[1] : JSON.stringify(shifts || []),
+    groups === null ? existing[2] : JSON.stringify(groups || []),
+    new Date().toISOString()
+  ];
+  if (index >= 0) rows[index] = row;
+  else rows.push(row);
+  writeRows_(sheet, rows, CONFIG_HEADERS.length);
+  if (!sheet.isSheetHidden()) sheet.hideSheet();
+}
+
+function getSheet_(ss, name, headers) {
+  let sheet = ss.getSheetByName(name);
+  if (!sheet) sheet = ss.insertSheet(name);
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  return sheet;
+}
+
+function readRows_(sheet, width) {
+  return sheet.getLastRow() > 1 ? sheet.getRange(2, 1, sheet.getLastRow() - 1, width).getValues() : [];
+}
+
+function writeRows_(sheet, rows, width) {
+  if (sheet.getLastRow() > 1) sheet.getRange(2, 1, sheet.getLastRow() - 1, width).clearContent();
+  if (rows.length) sheet.getRange(2, 1, rows.length, width).setValues(rows);
+  formatSheet_(sheet, width);
+}
+
+function formatSheet_(sheet, width) {
+  sheet.setFrozenRows(1);
+  sheet.getRange(1, 1, 1, width).setBackground("#1769aa").setFontColor("#ffffff").setFontWeight("bold");
+  sheet.autoResizeColumns(1, width);
+}
+
+function rosterStatus_(type) {
+  return ({ full: "Assigned", half: "Assigned - Half Day", off: "Week Off", weekend: "Weekend", other: "Other Time", unassigned: "Unassigned" })[type || "unassigned"] || "Unassigned";
+}
+
+function typeFromStatus_(status) {
+  return ({ "Assigned": "full", "Assigned - Half Day": "half", "Week Off": "off", "Weekend": "weekend", "Other Time": "other", "Unassigned": "unassigned" })[status] || "unassigned";
+}
+
+function attendanceDisplay_(entry) {
+  if (entry.type === "off" || entry.type === "weekend") return "Not Required";
+  return entry.attendance || "Not Marked";
+}
+
+function normalizeAttendance_(attendance) {
+  return attendance === "Not Marked" || attendance === "Not Required" || attendance === "Week Off" ? "" : attendance;
+}
+
+function dateValue_(value) {
+  if (!value) return "";
+  if (Object.prototype.toString.call(value) === "[object Date]") return Utilities.formatDate(value, Session.getScriptTimeZone(), "yyyy-MM-dd");
+  return String(value);
+}
+
+function dayName_(date) {
+  const parts = String(date).split("-").map(Number);
+  return ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][new Date(parts[0], parts[1] - 1, parts[2]).getDay()];
+}
+
+function parseJson_(value, fallback) {
+  try { return JSON.parse(String(value || "")); } catch (error) { return fallback; }
+}
+
+function json_(value) {
+  return ContentService.createTextOutput(JSON.stringify(value)).setMimeType(ContentService.MimeType.JSON);
+}

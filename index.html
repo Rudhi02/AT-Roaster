@@ -43,8 +43,8 @@
       background: linear-gradient(120deg, #102f52, #195a8d);
     }
     .brand { display: flex; align-items: center; gap: 12px; }
-    .logo { display: grid; place-items: center; min-width: 42px; height: 38px; padding: 4px 8px; border-radius: 8px; background: white; color: var(--brand-dark); font-size: 10px; letter-spacing: .08em; font-weight: 900; }
-    .logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .logo { display: flex; align-items: center; justify-content: center; background: transparent; color: var(--brand-dark); font-size: 10px; letter-spacing: .08em; font-weight: 900; }
+    .logo img { height: 90px; width: auto; max-width: 100%; display: block; object-fit: contain; }
     h1 { margin: 0; font-size: 18px; }
     .subtitle { opacity: .78; font-size: 12px; }
     .top-actions { display: flex; justify-content: flex-end; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -266,7 +266,7 @@
 <body>
   <section class="login-screen" id="loginScreen">
     <form class="login-card" id="loginForm">
-      <div class="brand" style="color:var(--brand-dark);margin-bottom:16px"><div class="logo"><img src="AT-Logo.png" alt="Axestrack"></div><div><h1>AT Roster</h1><div class="subtitle" style="opacity:1;color:var(--muted)">Axestrack</div></div></div>
+      <div class="brand" style="color:var(--brand-dark);margin-bottom:16px"><div class="logo"><img src="AT-Logo-full.png" alt="Axestrack"></div><div><h1>AT Roster</h1><div class="subtitle" style="opacity:1;color:var(--muted)">Axestrack</div></div></div>
       <h2>Department Login</h2>
       <p>Sign in to manage your department roster.</p>
       <label>Select Department
@@ -282,7 +282,7 @@
 
   <header class="topbar">
     <div class="brand">
-      <div class="logo"><img src="AT-Logo.png" alt="Axestrack"></div>
+      <div class="logo"><img src="AT-Logo-full.png" alt="Axestrack"></div>
       <div><h1 id="rosterName">AT Roster</h1><div class="subtitle">Department roster and attendance management</div></div>
     </div>
     <div class="top-actions">

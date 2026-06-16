@@ -10,7 +10,12 @@
       "Bash(curl -sS -i -X POST https://script.google.com/macros/s/AKfycbyKWN8az6-EhEQ7dZZDAy8yEfiqOQTURhVsKT91ZQjSQ1JyESRdAQ3GH24YiB0X2y1RHg/exec -H 'Content-Type: text/plain;charset=utf-8' --data-raw '{\"action\":\"loadDepartment\",\"token\":\"AT-OPS-2026-9kP4xM7q\",\"department\":\"Operations\"}')",
       "mcp__Claude_in_Chrome__tabs_context_mcp",
       "Read(//c/Users/D61dv/Downloads/**)",
-      "Read(//c//**)"
+      "Read(//c//**)",
+      "Bash(npx --version)",
+      "Bash(python -m http.server 8765 --bind 127.0.0.1)",
+      "Bash(curl -sS -o /dev/null -w \"%{http_code}\\\\n\" http://127.0.0.1:8765/)",
+      "Bash(pip install *)",
+      "Bash(python -c ' *)"
     ]
   }
 }

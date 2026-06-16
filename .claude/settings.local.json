@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(vercel --prod)",
-      "Bash(timeout 10 vercel whoami)"
+      "Bash(timeout 10 vercel whoami)",
+      "Bash(curl -sS -i \"https://at-roaster.vercel.app/\")",
+      "Bash(curl -sS -i \"https://at-roaster.vercel.app/backend-config.js\")",
+      "Bash(curl -sS \"https://at-roaster.vercel.app/\" -o /tmp/live.html)",
+      "Read(//tmp/**)",
+      "Bash(curl -sS -i -X POST https://script.google.com/macros/s/AKfycbyKWN8az6-EhEQ7dZZDAy8yEfiqOQTURhVsKT91ZQjSQ1JyESRdAQ3GH24YiB0X2y1RHg/exec -H 'Content-Type: text/plain;charset=utf-8' --data-raw '{\"action\":\"loadDepartment\",\"token\":\"AT-OPS-2026-9kP4xM7q\",\"department\":\"Operations\"}')",
+      "mcp__Claude_in_Chrome__tabs_context_mcp"
     ]
   }
 }

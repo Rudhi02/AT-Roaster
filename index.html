@@ -135,6 +135,14 @@
     .person-actions { margin-top: 5px; }
     .link-btn { padding: 0; border: 0; background: transparent; color: var(--brand); font-size: 11px; font-weight: 700; }
     .controls { display: flex; align-items: end; gap: 10px; flex-wrap: wrap; }
+    .search-field { position: relative; }
+    .search-suggestions { display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 12; margin-top: 4px; max-height: 230px; overflow-y: auto; background: white; border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); }
+    .search-suggestions.open { display: block; }
+    .search-suggestion-item { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 12px; border: 0; border-bottom: 1px solid var(--line); background: white; text-align: left; font-size: 13px; color: var(--ink); text-transform: none; letter-spacing: normal; }
+    .search-suggestion-item:last-child { border-bottom: 0; }
+    .search-suggestion-item:hover, .search-suggestion-item.active { background: var(--brand-soft); }
+    .search-suggestion-item span { color: var(--muted); font-size: 11px; font-weight: 700; }
+    .search-suggestion-empty { padding: 10px 12px; color: var(--muted); font-size: 12px; }
     label { display: grid; gap: 5px; color: var(--muted); font-size: 11px; font-weight: 750; text-transform: uppercase; letter-spacing: .04em; }
     input, select {
       min-height: 36px;
@@ -342,8 +350,9 @@
         <button class="btn" id="todayBtn">Today</button>
       </div>
       <div class="controls">
-        <label>Search Employee
-          <input id="search" type="search" placeholder="Name or employee ID">
+        <label class="search-field">Search Employee
+          <input id="search" type="search" placeholder="Name or employee ID" autocomplete="off">
+          <div class="search-suggestions" id="searchSuggestions"></div>
         </label>
       </div>
     </section>
@@ -1292,7 +1301,29 @@
     }));
     $("startDate").addEventListener("change", render);
     $("bulkGroup").addEventListener("change", () => { store.selectedGroupId = $("bulkGroup").value; render(); });
-    $("search").addEventListener("input", render);
+    function renderSearchSuggestions() {
+      const box = $("searchSuggestions");
+      const q = $("search").value.trim().toLowerCase();
+      const matches = departmentEmployees().filter(e => !q || `${e.name} ${e.id}`.toLowerCase().includes(q)).slice(0, 30);
+      if (!matches.length) {
+        box.innerHTML = `<div class="search-suggestion-empty">No matching employees</div>`;
+        box.classList.add("open");
+        return;
+      }
+      box.innerHTML = matches.map(e => `<button type="button" class="search-suggestion-item" data-pick-employee="${e.id}"><b>${e.name}</b><span>${e.id}</span></button>`).join("");
+      box.classList.add("open");
+      box.querySelectorAll("[data-pick-employee]").forEach(btn => btn.addEventListener("mousedown", event => {
+        event.preventDefault();
+        const employee = store.employees.find(e => e.id === btn.dataset.pickEmployee);
+        $("search").value = employee ? employee.name : "";
+        box.classList.remove("open");
+        render();
+      }));
+    }
+    $("search").addEventListener("input", () => { renderSearchSuggestions(); render(); });
+    $("search").addEventListener("focus", renderSearchSuggestions);
+    $("search").addEventListener("blur", () => setTimeout(() => $("searchSuggestions").classList.remove("open"), 150));
+    $("search").addEventListener("keydown", e => { if (e.key === "Escape") { $("searchSuggestions").classList.remove("open"); $("search").blur(); } });
     $("todayBtn").addEventListener("click", () => { $("startDate").value = iso(new Date()); render(); });
     $("addEmployeeBtn").addEventListener("click", () => { $("employeeDepartment").value = store.department; $("employeeDepartment").readOnly = true; $("employeeModal").classList.add("open"); });
     $("sheetSyncBtn").addEventListener("click", openSyncSettings);

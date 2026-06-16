@@ -22,7 +22,7 @@ function setDepartmentTokens() {
 function setupATRosterSheetBackend() {
   setDepartmentTokens();
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  formatSheet_(getSheet_(ss, ROSTER_TAB, ROSTER_HEADERS), ROSTER_HEADERS.length);
+  formatSheet_(getSheet_(ss, ROSTER_TAB, ROSTER_HEADERS, [9, 10]), ROSTER_HEADERS.length);
   formatSheet_(getSheet_(ss, EMPLOYEE_TAB, EMPLOYEE_HEADERS), EMPLOYEE_HEADERS.length);
   const config = getSheet_(ss, CONFIG_TAB, CONFIG_HEADERS);
   formatSheet_(config, CONFIG_HEADERS.length);
@@ -62,7 +62,7 @@ function loadDepartment_(department) {
       statusRemark: String(row[5] || ""), statusUpdatedBy: String(row[6] || ""), statusUpdatedAt: dateValue_(row[7])
     }));
   const entries = {};
-  readRows_(getSheet_(ss, ROSTER_TAB, ROSTER_HEADERS), ROSTER_HEADERS.length)
+  readRows_(getSheet_(ss, ROSTER_TAB, ROSTER_HEADERS, [9, 10]), ROSTER_HEADERS.length)
     .filter(row => String(row[2]) === department)
     .forEach(row => {
       const type = typeFromStatus_(String(row[10] || "Unassigned"));
@@ -70,8 +70,8 @@ function loadDepartment_(department) {
         type,
         shiftCode: String(row[6] || ""),
         shiftDisplayName: String(row[7] || ""),
-        start: String(row[8] || ""),
-        end: String(row[9] || ""),
+        start: timeValue_(row[8]),
+        end: timeValue_(row[9]),
         attendance: normalizeAttendance_(String(row[11] || "")),
         notes: String(row[12] || ""),
         markedBy: String(row[13] || ""),
@@ -94,7 +94,7 @@ function saveChanges_(department, payload) {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const employeeSheet = getSheet_(ss, EMPLOYEE_TAB, EMPLOYEE_HEADERS);
     upsertEmployees_(employeeSheet, department, payload.employees || []);
-    upsertRosterEntries_(getSheet_(ss, ROSTER_TAB, ROSTER_HEADERS), employeeSheet, department, payload.entries || []);
+    upsertRosterEntries_(getSheet_(ss, ROSTER_TAB, ROSTER_HEADERS, [9, 10]), employeeSheet, department, payload.entries || []);
     const shifts = Object.prototype.hasOwnProperty.call(payload, "shifts") ? payload.shifts : null;
     const groups = Object.prototype.hasOwnProperty.call(payload, "groups") ? payload.groups : null;
     if (shifts !== null || groups !== null) {
@@ -144,7 +144,14 @@ function upsertRosterEntries_(sheet, employeeSheet, department, changedEntries) 
     if (index.has(key)) rows[index.get(key)] = row;
     else { index.set(key, rows.length); rows.push(row); }
   });
-  writeRows_(sheet, rows, ROSTER_HEADERS.length);
+  // Normalize every row's Start/End Time to a plain "HH:mm" string before writing, so
+  // legacy cells that Sheets previously auto-converted into Date objects self-heal on
+  // the next sync, and freshly written values never get stored as a Date either.
+  rows.forEach(row => {
+    row[8] = timeValue_(row[8]);
+    row[9] = timeValue_(row[9]);
+  });
+  writeRows_(sheet, rows, ROSTER_HEADERS.length, { textColumns: [9, 10] });
 }
 
 function upsertConfig_(sheet, department, shifts, groups) {
@@ -163,10 +170,11 @@ function upsertConfig_(sheet, department, shifts, groups) {
   if (!sheet.isSheetHidden()) sheet.hideSheet();
 }
 
-function getSheet_(ss, name, headers) {
+function getSheet_(ss, name, headers, textColumns) {
   let sheet = ss.getSheetByName(name);
   if (!sheet) sheet = ss.insertSheet(name);
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  (textColumns || []).forEach(col => sheet.getRange(1, col, sheet.getMaxRows()).setNumberFormat("@"));
   return sheet;
 }
 
@@ -174,8 +182,13 @@ function readRows_(sheet, width) {
   return sheet.getLastRow() > 1 ? sheet.getRange(2, 1, sheet.getLastRow() - 1, width).getValues() : [];
 }
 
-function writeRows_(sheet, rows, width) {
+function writeRows_(sheet, rows, width, options) {
+  const textColumns = (options && options.textColumns) || [];
   if (sheet.getLastRow() > 1) sheet.getRange(2, 1, sheet.getLastRow() - 1, width).clearContent();
+  // Force plain-text format on time-like columns BEFORE writing, so Sheets does not
+  // auto-convert strings like "13:00" into a Date-typed cell (the root cause of times
+  // displaying as "Sat Dec 30 1899 13:00:00 GMT+...").
+  textColumns.forEach(col => sheet.getRange(2, col, Math.max(rows.length, 1), 1).setNumberFormat("@"));
   if (rows.length) sheet.getRange(2, 1, rows.length, width).setValues(rows);
   formatSheet_(sheet, width);
 }
@@ -207,6 +220,16 @@ function dateValue_(value) {
   if (!value) return "";
   if (Object.prototype.toString.call(value) === "[object Date]") return Utilities.formatDate(value, Session.getScriptTimeZone(), "yyyy-MM-dd");
   return String(value);
+}
+
+function timeValue_(value) {
+  if (!value) return "";
+  if (Object.prototype.toString.call(value) === "[object Date]") return Utilities.formatDate(value, Session.getScriptTimeZone(), "HH:mm");
+  // Some rows were already corrupted into a literal "Sat Dec 30 1899 09:00:00 GMT+..."
+  // string by the old buggy round trip before this cell was ever a real Date object
+  // again. Pull the HH:mm out of whatever text we have instead of trusting it as-is.
+  const match = String(value).match(/(\d{1,2}):(\d{2})(?::\d{2})?/);
+  return match ? `${match[1].padStart(2, "0")}:${match[2]}` : String(value);
 }
 
 function dayName_(date) {

@@ -191,8 +191,22 @@ function upsertConfig_(sheet, department, shifts, groups) {
 
 function getSheet_(ss, name, headers, textColumns) {
   let sheet = ss.getSheetByName(name);
-  if (!sheet) sheet = ss.insertSheet(name);
-  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  if (!sheet) {
+    // New sheet — write headers in the defined order.
+    sheet = ss.insertSheet(name);
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  } else {
+    // Existing sheet — NEVER reorder or remove columns.
+    // Only append headers that are genuinely missing, at the end.
+    const lastCol = sheet.getLastColumn();
+    const existing = lastCol > 0
+      ? sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(String)
+      : [];
+    const toAdd = headers.filter(h => !existing.includes(h));
+    if (toAdd.length) {
+      sheet.getRange(1, existing.length + 1, 1, toAdd.length).setValues([toAdd]);
+    }
+  }
   (textColumns || []).forEach(col => sheet.getRange(1, col, sheet.getMaxRows()).setNumberFormat("@"));
   return sheet;
 }

@@ -397,17 +397,8 @@
       <div class="modal-header"><div><strong id="shiftModalTitle">Edit roster entry</strong><div class="hint" id="shiftModalSubtitle"></div></div><button type="button" class="close" data-close>&times;</button></div>
       <div class="modal-body">
         <div class="form-grid">
-          <label>Roster assignment
+          <label class="wide">Roster assignment
             <select id="assignmentShift"></select>
-          </label>
-          <label>Attendance
-            <select id="attendance">
-              <option value="">Not marked</option>
-              <option value="Present">Present</option>
-              <option value="Absent">Absent</option>
-              <option value="Half Day">Half Day</option>
-              <option value="Leave">Leave</option>
-            </select>
           </label>
           <label class="wide">Notes<input id="notes" type="text" placeholder="Optional operational note"></label>
         </div>
@@ -471,7 +462,7 @@
       <div class="modal-body">
         <div class="form-grid">
           <label class="wide">Employee<select id="statusEmployeeSelect"></select></label>
-          <label>Status<select id="employeeStatus"><option>Active</option><option>Notice Period</option><option>Exited</option><option>Absconded</option><option>Inactive</option><option>On Hold</option></select></label>
+          <label>Status<select id="employeeStatus"><option>Active</option><option>Inactive</option></select></label>
           <label>Effective date<input id="statusEffectiveDate" required type="date"></label>
           <label class="wide">Remark<input id="statusRemark" placeholder="Optional reason for status change"></label>
         </div>
@@ -1047,11 +1038,10 @@
       $("shiftModalSubtitle").textContent = `${employee.name} · ${fmt(parseDate(date), {weekday:"long", day:"numeric", month:"long"})}`;
       $("assignmentShift").innerHTML = [
         ...departmentShifts().map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`),
-        `<option value="off">Week Off</option><option value="weekend">Weekend</option><option value="other">Other Time</option><option value="unassigned">Unassigned</option>`
+        `<option value="off">Week Off</option><option value="unassigned">Unassigned</option>`
       ].join("");
       const matchingShift = departmentShifts().find(s => s.start === entry.start && s.end === entry.end);
-      $("assignmentShift").value = entry.shiftId || matchingShift?.id || (["off","weekend","other","unassigned"].includes(entry.type) ? entry.type : "unassigned");
-      $("attendance").value = ["Present","Absent","Half Day","Leave"].includes(entry.attendance) ? entry.attendance : "";
+      $("assignmentShift").value = entry.shiftId || matchingShift?.id || (["off","unassigned"].includes(entry.type) ? entry.type : "unassigned");
       $("notes").value = entry.notes || "";
       $("shiftModal").classList.add("open");
     }
@@ -1180,10 +1170,10 @@
       const savedShift = departmentShifts().find(s => s.id === assignment);
       const markedAt = new Date().toISOString();
       const entry = savedShift
-        ? { shiftId: savedShift.id, shiftCode: savedShift.code, shiftDisplayName: savedShift.displayName, type: savedShift.type, start: savedShift.start, end: savedShift.end, attendance: $("attendance").value, notes: $("notes").value.trim(), markedBy: `${store.department} TL`, markedAt }
-        : { type: assignment, start: "", end: "", attendance: assignment === "off" ? "Week Off" : $("attendance").value, notes: $("notes").value.trim(), markedBy: `${store.department} TL`, markedAt };
+        ? { shiftId: savedShift.id, shiftCode: savedShift.code, shiftDisplayName: savedShift.displayName, type: savedShift.type, start: savedShift.start, end: savedShift.end, notes: $("notes").value.trim(), markedBy: `${store.department} TL`, markedAt }
+        : { type: assignment, start: "", end: "", notes: $("notes").value.trim(), markedBy: `${store.department} TL`, markedAt };
       store.entries[keyFor(store.selected.employeeId, store.selected.date)] = entry;
-      audit("MANUAL_ROSTER_UPDATE", "roster_entry", keyFor(store.selected.employeeId, store.selected.date), `Roster: ${entry.type}; Attendance: ${entry.attendance || "Not Marked"}`);
+      audit("MANUAL_ROSTER_UPDATE", "roster_entry", keyFor(store.selected.employeeId, store.selected.date), `Roster: ${entry.type}`);
       persist(); closeModals(); render();
     });
     $("editShiftForm").addEventListener("submit", e => {
@@ -1377,15 +1367,20 @@
       if (!employeeId || !shift || !from || !to || from > to) return alert("Choose a valid employee, shift, and date range.");
       const employee = store.employees.find(e => e.id === employeeId);
       if (!employee) return;
+      let count = 0;
       for (let date = new Date(from); date <= to; date = addDays(date, 1)) {
         if (!isEligibleOn(employee, iso(date))) continue;
         const isOff = weekOff !== "" && date.getDay() === Number(weekOff);
         store.entries[keyFor(employeeId, iso(date))] = isOff
           ? { type: "off", start: "", end: "", attendance: "Week Off", notes: "Applied from deployment template", markedBy: `${store.department} TL`, markedAt: new Date().toISOString() }
           : { shiftId: shift.id, shiftCode: shift.code, shiftDisplayName: shift.displayName, type: shift.type, start: shift.start, end: shift.end, attendance: "", notes: "Applied from deployment template", markedBy: `${store.department} TL`, markedAt: new Date().toISOString() };
+        count++;
       }
       audit("ROSTER_APPLY", "employee", employeeId, `${$("empBulkFrom").value} to ${$("empBulkTo").value}`);
+      // Navigate roster grid to the from date so the applied entries are immediately visible
+      $("startDate").value = $("empBulkFrom").value;
       persist(); render();
+      alert(`Roster applied for ${employee.name}: ${count} day(s) updated. The roster grid has scrolled to the start date.`);
     });
     $("empClearRosterBtn").addEventListener("click", () => {
       const employeeId = $("empBulkEmployee").value;
@@ -1588,6 +1583,14 @@
       refreshFromBackend().then(render);
       render();
     }
+
+    // Auto-refresh from backend every 60 seconds so all logged-in users
+    // see changes made by other users without needing a page reload.
+    setInterval(() => {
+      if (store.department && BACKEND_URL && !store.backendSaving) {
+        refreshFromBackend().then(render);
+      }
+    }, 60000);
   </script>
 </body>
 </html>

@@ -15,7 +15,9 @@
       "Bash(python -m http.server 8765 --bind 127.0.0.1)",
       "Bash(curl -sS -o /dev/null -w \"%{http_code}\\\\n\" http://127.0.0.1:8765/)",
       "Bash(pip install *)",
-      "Bash(python -c ' *)"
+      "Bash(python -c ' *)",
+      "mcp__Claude_Preview__preview_start",
+      "mcp__Claude_in_Chrome__navigate"
     ]
   }
 }

@@ -1147,8 +1147,8 @@
       const start = $("editShiftStart").value;
       const end = $("editShiftEnd").value;
       const startMinutes = Number(start.slice(0,2)) * 60 + Number(start.slice(3));
-      const endMinutes = Number(end.slice(0,2)) * 60 + Number(end.slice(3));
-      if (endMinutes <= startMinutes) return alert("Shift end must be later than shift start.");
+      let endMinutes = Number(end.slice(0,2)) * 60 + Number(end.slice(3));
+      if (endMinutes <= startMinutes) endMinutes += 1440;
       const scope = $("editShiftScope").value;
       const updated = { ...current, displayName: $("editShiftName").value.trim(), start, end, type: endMinutes - startMinutes <= 300 ? "half" : "full", remark: $("editShiftRemark").value.trim() };
       if (scope === "new") {
@@ -1221,9 +1221,9 @@
       const start = $("newShiftStart").value;
       const end = $("newShiftEnd").value;
       const startMinutes = Number(start.slice(0,2)) * 60 + Number(start.slice(3));
-      const endMinutes = Number(end.slice(0,2)) * 60 + Number(end.slice(3));
+      let endMinutes = Number(end.slice(0,2)) * 60 + Number(end.slice(3));
+      if (endMinutes <= startMinutes) endMinutes += 1440;
       const duration = endMinutes - startMinutes;
-      if (duration <= 0) return alert("Shift end must be later than shift start.");
       const number = nextShiftNumber();
       departmentShifts().push({
         id: `shift-${Date.now()}`, code: `Shift ${number}`,

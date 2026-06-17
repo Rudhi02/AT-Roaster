@@ -317,28 +317,29 @@
       <div class="saved-shifts" id="savedShifts"></div>
     </section>
 
-    <section class="planner page-section" id="rosterAssignment">
-      <div style="grid-column:1/-1"><strong>Roster Assignment</strong><div class="hint">Apply shifts to employee groups for selected dates.</div></div>
-      <label>Employee Group
-        <select id="bulkGroup"></select>
-      </label>
-      <label>Shift
-        <select id="bulkShift"></select>
-      </label>
-      <label>From
-        <input id="bulkFrom" type="date">
-      </label>
-      <label>To
-        <input id="bulkTo" type="date">
-      </label>
-      <label>Weekly Off
-        <select id="bulkWeekOff">
-          <option value="">None</option><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option>
-        </select>
-      </label>
-      <button type="button" class="btn primary" id="applyTemplateBtn">Apply Roster</button>
-      <button type="button" class="btn secondary" id="clearRosterBtn">Clear Roster</button>
-      <button type="button" class="btn secondary" id="manageGroupsBtn">Manage Employee Groups</button>
+    <section class="page-section" id="rosterAssignment" style="display:flex;flex-direction:column;gap:0;background:var(--panel);border-radius:14px">
+      <div style="padding:16px 20px 8px"><strong>Roster Assignment</strong><div class="hint">Apply shifts to groups or individual employees for selected dates.</div></div>
+      <div style="border-top:1px solid var(--line);padding:12px 20px 16px;display:grid;grid-template-columns:minmax(150px,16fr) minmax(240px,28fr) minmax(125px,13fr) minmax(125px,13fr) minmax(135px,14fr) auto auto auto;align-items:end;gap:8px">
+        <div style="grid-column:1/-1;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Group Roster Assignment</div>
+        <label style="min-width:0">Employee Group<select id="bulkGroup" style="width:100%;min-width:0"></select></label>
+        <label style="min-width:0">Shift<select id="bulkShift" style="width:100%;min-width:0"></select></label>
+        <label style="min-width:0">From<input id="bulkFrom" type="date" style="width:100%;min-width:0"></label>
+        <label style="min-width:0">To<input id="bulkTo" type="date" style="width:100%;min-width:0"></label>
+        <label style="min-width:0">Weekly Off<select id="bulkWeekOff" style="width:100%;min-width:0"><option value="">None</option><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select></label>
+        <button type="button" class="btn primary" id="applyTemplateBtn" style="min-height:36px;white-space:nowrap">Apply Roster</button>
+        <button type="button" class="btn secondary" id="clearRosterBtn" style="min-height:36px;white-space:nowrap">Clear Roster</button>
+        <button type="button" class="btn secondary" id="manageGroupsBtn" style="min-height:36px;white-space:nowrap">Manage Employee Groups</button>
+      </div>
+      <div style="border-top:1px solid var(--line);padding:12px 20px 16px;display:grid;grid-template-columns:minmax(150px,16fr) minmax(240px,28fr) minmax(125px,13fr) minmax(125px,13fr) minmax(135px,14fr) auto auto;align-items:end;gap:8px">
+        <div style="grid-column:1/-1;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Employee Roster Assignment</div>
+        <label style="min-width:0">Employee<select id="empBulkEmployee" style="width:100%;min-width:0"></select></label>
+        <label style="min-width:0">Shift<select id="empBulkShift" style="width:100%;min-width:0"></select></label>
+        <label style="min-width:0">From<input id="empBulkFrom" type="date" style="width:100%;min-width:0"></label>
+        <label style="min-width:0">To<input id="empBulkTo" type="date" style="width:100%;min-width:0"></label>
+        <label style="min-width:0">Weekly Off<select id="empBulkWeekOff" style="width:100%;min-width:0"><option value="">None</option><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select></label>
+        <button type="button" class="btn primary" id="empApplyTemplateBtn" style="min-height:36px;white-space:nowrap">Apply Roster</button>
+        <button type="button" class="btn secondary" id="empClearRosterBtn" style="min-height:36px;white-space:nowrap">Clear Roster</button>
+      </div>
     </section>
 
     <section class="toolbar page-section" id="viewControls">
@@ -911,11 +912,17 @@
     function renderPlannerOptions() {
       const selectedGroup = store.selectedGroupId || $("bulkGroup").value;
       const selectedShift = $("bulkShift").value;
+      const selectedEmpEmployee = $("empBulkEmployee").value;
+      const selectedEmpShift = $("empBulkShift").value;
       $("bulkGroup").innerHTML = `<option value="">All Active Employees</option>${Object.entries(employeeGroups()).map(([id,g]) => `<option value="${id}">${g.label} (${g.ids.length})</option>`).join("")}`;
       $("bulkShift").innerHTML = departmentShifts().map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`).join("");
       if (employeeGroups()[selectedGroup]) $("bulkGroup").value = selectedGroup;
       else store.selectedGroupId = "";
       if (departmentShifts().some(s => s.id === selectedShift)) $("bulkShift").value = selectedShift;
+      $("empBulkEmployee").innerHTML = `<option value="">-- Select Employee --</option>${departmentEmployees().map(e => `<option value="${e.id}">${e.name} · ${e.id}</option>`).join("")}`;
+      $("empBulkShift").innerHTML = departmentShifts().map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`).join("");
+      if (selectedEmpEmployee) $("empBulkEmployee").value = selectedEmpEmployee;
+      if (departmentShifts().some(s => s.id === selectedEmpShift)) $("empBulkShift").value = selectedEmpShift;
       $("savedShifts").innerHTML = departmentShifts().map(s => `<button type="button" class="saved-shift" data-edit-shift="${s.id}"><b>${shiftDisplay(s)}</b></button>`).join("");
       document.querySelectorAll("[data-edit-shift]").forEach(button => button.addEventListener("click", () => openShiftEditor(button.dataset.editShift)));
     }
@@ -1176,7 +1183,7 @@
       const div = document.createElement("div");
       div.className = "emp-row";
       div.style.cssText = "display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center;margin-bottom:6px";
-      div.innerHTML = `<input class="emp-id" required placeholder="LT-106" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;width:100%"><input class="emp-name" required placeholder="Employee name" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;width:100%"><button type="button" class="btn ghost emp-remove" style="padding:6px 10px;font-size:18px;line-height:1;color:var(--muted)" title="Remove row">&times;</button>`;
+      div.innerHTML = `<input class="emp-id" required placeholder="AT0650" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;width:100%"><input class="emp-name" required placeholder="Employee name" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;width:100%"><button type="button" class="btn ghost emp-remove" style="padding:6px 10px;font-size:18px;line-height:1;color:var(--muted)" title="Remove row">&times;</button>`;
       return div;
     }
     function syncRemoveButtons() {
@@ -1326,6 +1333,50 @@
         store.entries[key] = { type: "unassigned", attendance, notes, markedBy: `${store.department} TL`, markedAt: new Date().toISOString() };
       });
       audit("ROSTER_CLEAR", "employee_group", $("bulkGroup").value, `${keys.length} entries; attendance cleared: ${clearAttendance}`);
+      persist(); render();
+    });
+    $("empApplyTemplateBtn").addEventListener("click", () => {
+      const employeeId = $("empBulkEmployee").value;
+      const shift = departmentShifts().find(s => s.id === $("empBulkShift").value);
+      const from = parseDate($("empBulkFrom").value);
+      const to = parseDate($("empBulkTo").value);
+      const weekOff = $("empBulkWeekOff").value;
+      if (!employeeId || !shift || !from || !to || from > to) return alert("Choose a valid employee, shift, and date range.");
+      const employee = store.employees.find(e => e.id === employeeId);
+      if (!employee) return;
+      for (let date = new Date(from); date <= to; date = addDays(date, 1)) {
+        if (!isEligibleOn(employee, iso(date))) continue;
+        const isOff = weekOff !== "" && date.getDay() === Number(weekOff);
+        store.entries[keyFor(employeeId, iso(date))] = isOff
+          ? { type: "off", start: "", end: "", attendance: "Week Off", notes: "Applied from deployment template", markedBy: `${store.department} TL`, markedAt: new Date().toISOString() }
+          : { shiftId: shift.id, shiftCode: shift.code, shiftDisplayName: shift.displayName, type: shift.type, start: shift.start, end: shift.end, attendance: "", notes: "Applied from deployment template", markedBy: `${store.department} TL`, markedAt: new Date().toISOString() };
+      }
+      audit("ROSTER_APPLY", "employee", employeeId, `${$("empBulkFrom").value} to ${$("empBulkTo").value}`);
+      persist(); render();
+    });
+    $("empClearRosterBtn").addEventListener("click", () => {
+      const employeeId = $("empBulkEmployee").value;
+      const from = parseDate($("empBulkFrom").value);
+      const to = parseDate($("empBulkTo").value);
+      if (!employeeId || !from || !to || from > to) return alert("Choose a valid employee and date range.");
+      const keys = [];
+      for (let date = new Date(from); date <= to; date = addDays(date, 1)) {
+        const key = keyFor(employeeId, iso(date));
+        if (store.entries[key]) keys.push(key);
+      }
+      if (!keys.length) return alert("No roster assignments found for the selected employee and date range.");
+      const marked = keys.filter(key => ["Present","Absent","Half Day","Leave"].includes(store.entries[key]?.attendance));
+      if (!confirm("You are about to clear roster assignments for this employee. Attendance data, if already marked, may also be affected. Do you want to continue?")) return;
+      let clearAttendance = false;
+      if (marked.length) {
+        clearAttendance = confirm("Attendance is already marked for some entries. Click OK to clear roster and attendance, or Cancel to clear roster only.");
+      }
+      keys.forEach(key => {
+        const attendance = clearAttendance ? "" : (store.entries[key].attendance || "");
+        const notes = store.entries[key].notes || "";
+        store.entries[key] = { type: "unassigned", attendance, notes, markedBy: `${store.department} TL`, markedAt: new Date().toISOString() };
+      });
+      audit("ROSTER_CLEAR", "employee", employeeId, `${keys.length} entries; attendance cleared: ${clearAttendance}`);
       persist(); render();
     });
     $("exportBtn").addEventListener("click", () => {
@@ -1493,6 +1544,8 @@
     $("startDate").value = iso(new Date());
     $("bulkFrom").value = iso(new Date());
     $("bulkTo").value = iso(addDays(new Date(), 9));
+    $("empBulkFrom").value = iso(new Date());
+    $("empBulkTo").value = iso(addDays(new Date(), 9));
     refreshLoginOptions();
     renderSyncBadge();
     if (store.department && store.departments.some(d => d.name === store.department && (d.status === "Active" || store.accessLevel === "admin"))) {

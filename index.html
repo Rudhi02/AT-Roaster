@@ -495,17 +495,20 @@
   </div>
 
   <div class="modal-backdrop" id="employeeModal">
-    <form class="modal" id="employeeForm" style="min-width:560px;max-width:700px">
+    <form class="modal" id="employeeForm" style="min-width:580px;max-width:720px">
       <div class="modal-header"><strong>Add Employees</strong><button type="button" class="close" data-close>&times;</button></div>
       <div class="modal-body">
-        <div id="employeeRows">
-          <div class="emp-row form-grid" style="align-items:center">
-            <label>Employee ID<input class="emp-id" required placeholder="LT-106"></label>
-            <label>Employee Name<input class="emp-name" required placeholder="Employee name"></label>
-            <button type="button" class="btn ghost emp-remove" style="margin-top:18px;padding:6px 10px;font-size:16px;line-height:1" title="Remove row">&times;</button>
-          </div>
+        <div style="margin-bottom:10px">
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Department</label>
+          <div id="empDeptDisplay" style="font-size:14px;font-weight:600;color:var(--ink);margin-top:3px"></div>
         </div>
-        <button type="button" id="addEmpRowBtn" class="btn ghost" style="margin-top:10px;font-size:13px">+ Add another employee</button>
+        <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--line)">
+          <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Employee ID</span>
+          <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Employee Name</span>
+          <span></span>
+        </div>
+        <div id="employeeRows"></div>
+        <button type="button" id="addEmpRowBtn" class="btn ghost" style="margin-top:10px;font-size:13px;width:100%">+ Add Another Employee</button>
       </div>
       <div class="modal-footer"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">Save All</button></div>
     </form>
@@ -1171,9 +1174,9 @@
     });
     function empRowHTML() {
       const div = document.createElement("div");
-      div.className = "emp-row form-grid";
-      div.style.alignItems = "center";
-      div.innerHTML = `<label>Employee ID<input class="emp-id" required placeholder="LT-106"></label><label>Employee Name<input class="emp-name" required placeholder="Employee name"></label><button type="button" class="btn ghost emp-remove" style="margin-top:18px;padding:6px 10px;font-size:16px;line-height:1" title="Remove row">&times;</button>`;
+      div.className = "emp-row";
+      div.style.cssText = "display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center;margin-bottom:6px";
+      div.innerHTML = `<input class="emp-id" required placeholder="LT-106" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;width:100%"><input class="emp-name" required placeholder="Employee name" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;width:100%"><button type="button" class="btn ghost emp-remove" style="padding:6px 10px;font-size:18px;line-height:1;color:var(--muted)" title="Remove row">&times;</button>`;
       return div;
     }
     function syncRemoveButtons() {
@@ -1193,6 +1196,7 @@
       syncRemoveButtons();
     });
     $("addEmployeeBtn").addEventListener("click", () => {
+      $("empDeptDisplay").textContent = store.department;
       $("employeeRows").innerHTML = "";
       $("employeeRows").appendChild(empRowHTML());
       syncRemoveButtons();

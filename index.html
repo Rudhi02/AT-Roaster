@@ -495,16 +495,19 @@
   </div>
 
   <div class="modal-backdrop" id="employeeModal">
-    <form class="modal" id="employeeForm">
-      <div class="modal-header"><strong>Add Employee</strong><button type="button" class="close" data-close>&times;</button></div>
+    <form class="modal" id="employeeForm" style="min-width:560px;max-width:700px">
+      <div class="modal-header"><strong>Add Employees</strong><button type="button" class="close" data-close>&times;</button></div>
       <div class="modal-body">
-        <div class="form-grid">
-          <label>Employee ID<input id="employeeId" required placeholder="LT-106"></label>
-          <label>Employee name<input id="employeeName" required placeholder="Employee name"></label>
-          <label class="wide">Department<input id="employeeDepartment" required placeholder="Operations"></label>
+        <div id="employeeRows">
+          <div class="emp-row form-grid" style="align-items:center">
+            <label>Employee ID<input class="emp-id" required placeholder="LT-106"></label>
+            <label>Employee Name<input class="emp-name" required placeholder="Employee name"></label>
+            <button type="button" class="btn ghost emp-remove" style="margin-top:18px;padding:6px 10px;font-size:16px;line-height:1" title="Remove row">&times;</button>
+          </div>
         </div>
+        <button type="button" id="addEmpRowBtn" class="btn ghost" style="margin-top:10px;font-size:13px">+ Add another employee</button>
       </div>
-      <div class="modal-footer"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">Add Employee</button></div>
+      <div class="modal-footer"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">Save All</button></div>
     </form>
   </div>
 
@@ -1166,14 +1169,49 @@
       audit("ROSTER_ENTRY_CLEAR", "roster_entry", keyFor(store.selected.employeeId, store.selected.date));
       persist(); closeModals(); render();
     });
+    function empRowHTML() {
+      const div = document.createElement("div");
+      div.className = "emp-row form-grid";
+      div.style.alignItems = "center";
+      div.innerHTML = `<label>Employee ID<input class="emp-id" required placeholder="LT-106"></label><label>Employee Name<input class="emp-name" required placeholder="Employee name"></label><button type="button" class="btn ghost emp-remove" style="margin-top:18px;padding:6px 10px;font-size:16px;line-height:1" title="Remove row">&times;</button>`;
+      return div;
+    }
+    function syncRemoveButtons() {
+      const rows = $("employeeRows").querySelectorAll(".emp-row");
+      rows.forEach(row => {
+        const btn = row.querySelector(".emp-remove");
+        btn.style.visibility = rows.length === 1 ? "hidden" : "visible";
+      });
+    }
+    $("employeeRows").addEventListener("click", e => {
+      if (!e.target.classList.contains("emp-remove")) return;
+      e.target.closest(".emp-row").remove();
+      syncRemoveButtons();
+    });
+    $("addEmpRowBtn").addEventListener("click", () => {
+      $("employeeRows").appendChild(empRowHTML());
+      syncRemoveButtons();
+    });
+    $("addEmployeeBtn").addEventListener("click", () => {
+      $("employeeRows").innerHTML = "";
+      $("employeeRows").appendChild(empRowHTML());
+      syncRemoveButtons();
+      $("employeeModal").classList.add("open");
+    });
     $("employeeForm").addEventListener("submit", e => {
       e.preventDefault();
-      const employee = { id: $("employeeId").value.trim(), name: $("employeeName").value.trim(), department: $("employeeDepartment").value.trim() };
-      employee.department = store.department;
-      employee.status = "Active";
-      if (store.employees.some(e => e.id.toLowerCase() === employee.id.toLowerCase())) return alert("Employee ID already exists.");
-      store.employees.push(employee); audit("EMPLOYEE_CREATE", "employee", employee.id); persist(); $("employeeForm").reset(); closeModals(); render();
-      render();
+      const rows = [...$("employeeRows").querySelectorAll(".emp-row")];
+      const toAdd = [];
+      for (const row of rows) {
+        const id = row.querySelector(".emp-id").value.trim();
+        const name = row.querySelector(".emp-name").value.trim();
+        if (!id || !name) return alert("Please fill in all Employee ID and Name fields.");
+        if (store.employees.some(ex => ex.id.toLowerCase() === id.toLowerCase())) return alert(`Employee ID "${id}" already exists.`);
+        if (toAdd.some(ex => ex.id.toLowerCase() === id.toLowerCase())) return alert(`Duplicate Employee ID "${id}" in this batch.`);
+        toAdd.push({ id, name, department: store.department, status: "Active" });
+      }
+      toAdd.forEach(employee => { store.employees.push(employee); audit("EMPLOYEE_CREATE", "employee", employee.id); });
+      persist(); closeModals(); render();
     });
     function saveEmployeeGroup() {
       const groups = departmentGroups();
@@ -1330,7 +1368,7 @@
     $("search").addEventListener("blur", () => setTimeout(() => $("searchSuggestions").classList.remove("open"), 150));
     $("search").addEventListener("keydown", e => { if (e.key === "Escape") { $("searchSuggestions").classList.remove("open"); $("search").blur(); } });
     $("todayBtn").addEventListener("click", () => { $("startDate").value = iso(new Date()); render(); });
-    $("addEmployeeBtn").addEventListener("click", () => { $("employeeDepartment").value = store.department; $("employeeDepartment").readOnly = true; $("employeeModal").classList.add("open"); });
+
     $("sheetSyncBtn").addEventListener("click", openSyncSettings);
     $("syncNowBtn").addEventListener("click", () => saveToBackend(true));
     $("syncForm").addEventListener("submit", e => {

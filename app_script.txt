@@ -15,7 +15,9 @@ function setDepartmentTokens() {
     "AT-OPS-2026-9kP4xM7q": "Operations",
     "AT-QUALITY-2026-6nR8vT2z": "Quality",
     "AT-SUPPORT-2026-3wL7cB5m": "Support",
-    "AT-FINANCE-2026-8yH2dQ4s": "Finance"
+    "AT-FINANCE-2026-8yH2dQ4s": "Finance",
+    "AT-OPSIN-2026-5tK3nW8j": "Ops Inbound",
+    "AT-WALLET-2026-2mR6vX9p": "Wallet"
   }));
 }
 

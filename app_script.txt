@@ -19,6 +19,7 @@ function setDepartmentTokens() {
     "AT-OPSIN-2026-5tK3nW8j": "Ops Inbound",
     "AT-WALLET-2026-2mR6vX9p": "Wallet"
   }));
+  PropertiesService.getScriptProperties().setProperty("AT_ROSTER_ADMIN_TOKEN", "AT-ADMIN-2026-xQ7wP2mK");
 }
 
 function setupATRosterSheetBackend() {
@@ -38,6 +39,8 @@ function doGet() {
 function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents || "{}");
+    if (payload.action === "loadGlobalConfig") return json_({ ok: true, ...loadGlobalConfig_() });
+    if (payload.action === "saveGlobalConfig") return json_({ ok: true, ...saveGlobalConfig_(payload) });
     const department = authorize_(payload.token, payload.department);
     if (payload.action === "loadDepartment") return json_({ ok: true, ...loadDepartment_(department) });
     if (payload.action === "saveChanges") return json_({ ok: true, ...saveChanges_(department, payload) });
@@ -45,6 +48,20 @@ function doPost(e) {
   } catch (error) {
     return json_({ ok: false, error: error.message });
   }
+}
+
+function loadGlobalConfig_() {
+  const raw = PropertiesService.getScriptProperties().getProperty("AT_ROSTER_DEPARTMENTS");
+  return { departments: raw ? JSON.parse(raw) : null };
+}
+
+function saveGlobalConfig_(payload) {
+  const adminToken = PropertiesService.getScriptProperties().getProperty("AT_ROSTER_ADMIN_TOKEN");
+  if (!payload.adminToken || payload.adminToken !== adminToken) throw new Error("Unauthorized admin request");
+  if (payload.departments) {
+    PropertiesService.getScriptProperties().setProperty("AT_ROSTER_DEPARTMENTS", JSON.stringify(payload.departments));
+  }
+  return { savedAt: new Date().toISOString() };
 }
 
 function authorize_(token, requestedDepartment) {

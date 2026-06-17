@@ -548,19 +548,28 @@
       { id: "LT-107", name: "Neil Rao", department: "Finance", status: "Active" }
     ];
     const defaultDepartments = [
-      { id:"dep-operations", name:"Operations", password:"ops123", status:"Active", createdBy:"System", createdAt:"2026-06-09T00:00:00.000Z", updatedAt:"2026-06-09T00:00:00.000Z" },
-      { id:"dep-quality", name:"Quality", password:"ql123", status:"Active", createdBy:"System", createdAt:"2026-06-09T00:00:00.000Z", updatedAt:"2026-06-09T00:00:00.000Z" },
-      { id:"dep-support", name:"Support", password:"sp123", status:"Active", createdBy:"System", createdAt:"2026-06-09T00:00:00.000Z", updatedAt:"2026-06-09T00:00:00.000Z" },
-      { id:"dep-finance", name:"Finance", password:"fi123", status:"Active", createdBy:"System", createdAt:"2026-06-09T00:00:00.000Z", updatedAt:"2026-06-09T00:00:00.000Z" }
+      { id:"dep-ops-inbound", name:"Ops Inbound", password:"ops123", status:"Active", createdBy:"Admin", createdAt:"2026-06-17T00:00:00.000Z", updatedAt:"2026-06-17T00:00:00.000Z" },
+      { id:"dep-wallet", name:"Wallet", password:"wallet123", status:"Active", createdBy:"Admin", createdAt:"2026-06-17T00:00:00.000Z", updatedAt:"2026-06-17T00:00:00.000Z" }
     ];
     const ADMIN_PASSWORD = "ad123";
+    const ADMIN_SYNC_TOKEN = "AT-ADMIN-2026-xQ7wP2mK";
     const DEPARTMENT_SYNC_TOKENS = {
       Operations: "AT-OPS-2026-9kP4xM7q",
       Quality: "AT-QUALITY-2026-6nR8vT2z",
       Support: "AT-SUPPORT-2026-3wL7cB5m",
       Finance: "AT-FINANCE-2026-8yH2dQ4s",
       "Ops Inbound": "AT-OPSIN-2026-5tK3nW8j",
-      Wallet: "AT-WALLET-2026-2mR6vX9p"
+      "ops inbound": "AT-OPSIN-2026-5tK3nW8j",
+      "OPS Inbound": "AT-OPSIN-2026-5tK3nW8j",
+      "Ops inbound": "AT-OPSIN-2026-5tK3nW8j",
+      Wallet: "AT-WALLET-2026-2mR6vX9p",
+      wallet: "AT-WALLET-2026-2mR6vX9p",
+      WALLET: "AT-WALLET-2026-2mR6vX9p"
+    };
+    const getDeptToken = dept => {
+      if (!dept) return "";
+      return DEPARTMENT_SYNC_TOKENS[dept] || DEPARTMENT_SYNC_TOKENS[dept.trim()] ||
+        Object.entries(DEPARTMENT_SYNC_TOKENS).find(([k]) => k.toLowerCase() === dept.toLowerCase())?.[1] || "";
     };
     const defaultShifts = [
       { id: "shift-1", code: "Shift 1", displayName: "Standard", type: "full", start: "09:00", end: "18:00", remark: "" },
@@ -615,6 +624,7 @@
       store.syncConfig.syncState = "Pending Sync";
       renderSyncBadge();
       scheduleBackendSave();
+      if (store.accessLevel === "admin") saveDepartmentsToBackend();
     };
     const keyFor = (employeeId, date) => `${employeeId}|${date}`;
     const labels = { full: "Full Day", half: "Half Day", off: "Week Off", weekend: "Weekend", other: "Other Time", unassigned: "Unassigned" };
@@ -695,15 +705,36 @@
       return result;
     }
 
+    async function loadGlobalConfig() {
+      if (!BACKEND_URL) return;
+      try {
+        const result = await backendRequest({ action: "loadGlobalConfig" });
+        if (result.departments && result.departments.length) {
+          const existingById = Object.fromEntries(store.departments.map(d => [d.id, d]));
+          store.departments = result.departments.map(d => ({
+            ...d,
+            password: d.password || existingById[d.id]?.password || ""
+          }));
+          localStorage.setItem("at-departments", JSON.stringify(store.departments));
+          refreshLoginOptions();
+        }
+      } catch(e) { /* use local fallback */ }
+    }
+    async function saveDepartmentsToBackend() {
+      if (!BACKEND_URL || store.accessLevel !== "admin") return;
+      try {
+        await backendRequest({ action: "saveGlobalConfig", adminToken: ADMIN_SYNC_TOKEN, departments: store.departments });
+      } catch(e) { console.warn("Dept sync failed:", e.message); }
+    }
     function scheduleBackendSave() {
-      if (!store.department || !BACKEND_URL || !DEPARTMENT_SYNC_TOKENS[store.department]) return;
+      if (!store.department || !BACKEND_URL || !getDeptToken(store.department)) return;
       store.backendPending = true;
       clearTimeout(syncTimer);
       syncTimer = setTimeout(() => saveToBackend(false), 500);
     }
 
     async function saveToBackend(showResult = true) {
-      const token = DEPARTMENT_SYNC_TOKENS[store.department];
+      const token = getDeptToken(store.department);
       if (!BACKEND_URL || !token || !store.department) {
         if (showResult) alert("Automatic Sheet sync is not configured for this department yet.");
         return;
@@ -745,7 +776,7 @@
     }
 
     async function refreshFromBackend() {
-      const token = DEPARTMENT_SYNC_TOKENS[store.department];
+      const token = getDeptToken(store.department);
       if (!BACKEND_URL || !token || !store.department) return;
       try {
         const result = await backendRequest({ action: "loadDepartment", token, department: store.department });
@@ -1548,6 +1579,7 @@
     $("bulkTo").value = iso(addDays(new Date(), 9));
     $("empBulkFrom").value = iso(new Date());
     $("empBulkTo").value = iso(addDays(new Date(), 9));
+    loadGlobalConfig();
     refreshLoginOptions();
     renderSyncBadge();
     if (store.department && store.departments.some(d => d.name === store.department && (d.status === "Active" || store.accessLevel === "admin"))) {

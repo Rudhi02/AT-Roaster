@@ -312,6 +312,9 @@
         <label>Start Time<input id="newShiftStart" required type="time"></label>
         <label>End Time<input id="newShiftEnd" required type="time"></label>
         <label>Remark<input id="newShiftRemark" placeholder="Optional remark"></label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;cursor:pointer">
+          <input type="checkbox" id="newShiftIsOT" style="width:16px;height:16px;cursor:pointer"> OT Shift
+        </label>
         <button class="btn primary" type="submit">Add Shift</button>
       </form>
       <div class="saved-shifts" id="savedShifts"></div>
@@ -319,21 +322,23 @@
 
     <section class="page-section" id="rosterAssignment" style="display:flex;flex-direction:column;gap:0;background:var(--panel);border-radius:14px">
       <div style="padding:16px 20px 8px"><strong>Roster Assignment</strong><div class="hint">Apply shifts to groups or individual employees for selected dates.</div></div>
-      <div style="border-top:1px solid var(--line);padding:12px 20px 16px;display:grid;grid-template-columns:minmax(150px,16fr) minmax(240px,28fr) minmax(125px,13fr) minmax(125px,13fr) minmax(135px,14fr) auto auto auto;align-items:end;gap:8px">
+      <div style="border-top:1px solid var(--line);padding:12px 20px 16px;display:grid;grid-template-columns:minmax(130px,14fr) minmax(160px,18fr) minmax(160px,18fr) minmax(110px,11fr) minmax(110px,11fr) minmax(120px,12fr) auto auto auto;align-items:end;gap:8px">
         <div style="grid-column:1/-1;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Group Roster Assignment</div>
         <label style="min-width:0">Employee Group<select id="bulkGroup" style="width:100%;min-width:0"></select></label>
-        <label style="min-width:0">Shift<select id="bulkShift" style="width:100%;min-width:0"></select></label>
+        <label style="min-width:0">Normal Shift<select id="bulkShift" style="width:100%;min-width:0"></select></label>
+        <label style="min-width:0">OT Shift<select id="bulkOTShift" style="width:100%;min-width:0"></select></label>
         <label style="min-width:0">From<input id="bulkFrom" type="date" style="width:100%;min-width:0"></label>
         <label style="min-width:0">To<input id="bulkTo" type="date" style="width:100%;min-width:0"></label>
         <label style="min-width:0">Weekly Off<select id="bulkWeekOff" style="width:100%;min-width:0"><option value="">None</option><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select></label>
-        <button type="button" class="btn primary" id="applyTemplateBtn" style="min-height:36px;white-space:nowrap">Apply Roster</button>
-        <button type="button" class="btn secondary" id="clearRosterBtn" style="min-height:36px;white-space:nowrap">Clear Roster</button>
-        <button type="button" class="btn secondary" id="manageGroupsBtn" style="min-height:36px;white-space:nowrap">Manage Employee Groups</button>
+        <button type="button" class="btn primary" id="applyTemplateBtn" style="min-height:36px;white-space:nowrap;font-size:13px">Apply Roster</button>
+        <button type="button" class="btn secondary" id="clearRosterBtn" style="min-height:36px;white-space:nowrap;font-size:13px">Clear Roster</button>
+        <button type="button" class="btn secondary" id="manageGroupsBtn" style="min-height:36px;white-space:nowrap;font-size:13px">Manage Groups</button>
       </div>
-      <div style="border-top:1px solid var(--line);padding:12px 20px 16px;display:grid;grid-template-columns:minmax(150px,16fr) minmax(240px,28fr) minmax(125px,13fr) minmax(125px,13fr) minmax(135px,14fr) auto auto;align-items:end;gap:8px">
+      <div style="border-top:1px solid var(--line);padding:12px 20px 16px;display:grid;grid-template-columns:minmax(150px,16fr) minmax(200px,22fr) minmax(200px,22fr) minmax(125px,13fr) minmax(125px,13fr) minmax(135px,14fr) auto auto;align-items:end;gap:8px">
         <div style="grid-column:1/-1;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Employee Roster Assignment</div>
         <label style="min-width:0">Employee<select id="empBulkEmployee" style="width:100%;min-width:0"></select></label>
-        <label style="min-width:0">Shift<select id="empBulkShift" style="width:100%;min-width:0"></select></label>
+        <label style="min-width:0">Normal Shift<select id="empBulkShift" style="width:100%;min-width:0"></select></label>
+        <label style="min-width:0">OT Shift<select id="empBulkOTShift" style="width:100%;min-width:0"></select></label>
         <label style="min-width:0">From<input id="empBulkFrom" type="date" style="width:100%;min-width:0"></label>
         <label style="min-width:0">To<input id="empBulkTo" type="date" style="width:100%;min-width:0"></label>
         <label style="min-width:0">Weekly Off<select id="empBulkWeekOff" style="width:100%;min-width:0"><option value="">None</option><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select></label>
@@ -397,12 +402,15 @@
       <div class="modal-header"><div><strong id="shiftModalTitle">Edit roster entry</strong><div class="hint" id="shiftModalSubtitle"></div></div><button type="button" class="close" data-close>&times;</button></div>
       <div class="modal-body">
         <div class="form-grid">
-          <label class="wide">Roster assignment
+          <label>Normal Shift
             <select id="assignmentShift"></select>
+          </label>
+          <label>OT Shift <span style="font-weight:400;font-size:11px;color:var(--muted)">(optional)</span>
+            <select id="assignmentOTShift"></select>
           </label>
           <label class="wide">Notes<input id="notes" type="text" placeholder="Optional operational note"></label>
         </div>
-        <div class="hint">Select a saved shift or special status. One roster assignment is allowed per employee per date.</div>
+        <div class="hint">One roster record per employee per date. OT shift is optional.</div>
       </div>
       <div class="modal-footer"><button type="button" class="btn danger" id="clearEntry">Clear entry</button><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">Save entry</button></div>
     </form>
@@ -424,6 +432,9 @@
           <label>Start<input id="editShiftStart" required type="time"></label>
           <label>End<input id="editShiftEnd" required type="time"></label>
           <label class="wide">Remark<input id="editShiftRemark" placeholder="Optional remark"></label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;cursor:pointer">
+            <input type="checkbox" id="editShiftIsOT" style="width:16px;height:16px;cursor:pointer"> OT Shift
+          </label>
         </div>
       </div>
       <div class="modal-footer"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">Save shift</button></div>
@@ -620,7 +631,7 @@
     const keyFor = (employeeId, date) => `${employeeId}|${date}`;
     const labels = { full: "Full Day", half: "Half Day", off: "Week Off", weekend: "Weekend", other: "Other Time", unassigned: "Unassigned" };
     const compactCode = shift => `S${String(shift.code || "").replace(/\D/g, "") || "?"}`;
-    const shiftDisplay = shift => `${shift.code} · ${shift.start}–${shift.end}${shift.displayName ? ` · ${shift.displayName}` : ""}${shift.remark ? ` · ${shift.remark}` : ""}`;
+    const shiftDisplay = shift => `${shift.code} · ${shift.start}–${shift.end}${shift.displayName ? ` · ${shift.displayName}` : ""}${shift.remark ? ` · ${shift.remark}` : ""}${shift.isOT ? " [OT]" : ""}`;
     const nextShiftNumber = () => Math.max(0, ...departmentShifts().map(s => Number(String(s.code || s.name || "").replace(/\D/g, "")) || 0)) + 1;
     let syncTimer;
 
@@ -662,10 +673,20 @@
       const department = state.department;
       const existingEmployeeIds = new Set(store.employees.filter(employee => employee.department === department).map(employee => employee.id));
       store.employees = store.employees.filter(employee => employee.department !== department).concat(state.employees || []);
+      // Preserve OT fields from local entries before backend overwrites them
+      // (backend may not yet return OT columns if the script hasn't been redeployed)
+      const localOT = {};
+      Object.entries(store.entries).forEach(([key, entry]) => {
+        if (existingEmployeeIds.has(key.split("|")[0]) && entry.otShiftId) {
+          localOT[key] = { otShiftId: entry.otShiftId, otShiftCode: entry.otShiftCode, otShiftDisplayName: entry.otShiftDisplayName, otStart: entry.otStart, otEnd: entry.otEnd };
+        }
+      });
       Object.keys(store.entries).forEach(key => {
         if (existingEmployeeIds.has(key.split("|")[0])) delete store.entries[key];
       });
-      Object.assign(store.entries, state.entries || {});
+      Object.entries(state.entries || {}).forEach(([key, entry]) => {
+        store.entries[key] = localOT[key] ? { ...entry, ...localOT[key] } : entry;
+      });
       store.shiftDefinitions[department] = state.shifts || [];
       store.deploymentGroups[department] = state.groups || [];
       store.auditEvents = store.auditEvents.filter(event => event.department !== department).concat(state.auditEvents || []);
@@ -929,25 +950,35 @@
         s.code ||= `Shift ${Number(String(s.name || "").replace(/\D/g, "")) || i + 1}`;
         s.displayName ??= s.name && s.name !== s.code ? s.name : "";
         s.id ||= `shift-${i + 1}`;
+        s.isOT ??= false;
       });
       return store.shiftDefinitions[store.department];
     }
 
     function renderPlannerOptions() {
+      const allShifts = departmentShifts();
+      const normalShifts = allShifts.filter(s => !s.isOT);
+      const otShifts = allShifts.filter(s => s.isOT);
       const selectedGroup = store.selectedGroupId || $("bulkGroup").value;
       const selectedShift = $("bulkShift").value;
+      const selectedOTShift = $("bulkOTShift").value;
       const selectedEmpEmployee = $("empBulkEmployee").value;
       const selectedEmpShift = $("empBulkShift").value;
+      const selectedEmpOTShift = $("empBulkOTShift").value;
       $("bulkGroup").innerHTML = `<option value="">All Active Employees</option>${Object.entries(employeeGroups()).map(([id,g]) => `<option value="${id}">${g.label} (${g.ids.length})</option>`).join("")}`;
-      $("bulkShift").innerHTML = departmentShifts().map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`).join("");
+      $("bulkShift").innerHTML = normalShifts.map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`).join("");
+      $("bulkOTShift").innerHTML = `<option value="">None</option>${otShifts.map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`).join("")}`;
       if (employeeGroups()[selectedGroup]) $("bulkGroup").value = selectedGroup;
       else store.selectedGroupId = "";
-      if (departmentShifts().some(s => s.id === selectedShift)) $("bulkShift").value = selectedShift;
+      if (normalShifts.some(s => s.id === selectedShift)) $("bulkShift").value = selectedShift;
+      if (otShifts.some(s => s.id === selectedOTShift)) $("bulkOTShift").value = selectedOTShift;
       $("empBulkEmployee").innerHTML = `<option value="">-- Select Employee --</option>${departmentEmployees().map(e => `<option value="${e.id}">${e.name} · ${e.id}</option>`).join("")}`;
-      $("empBulkShift").innerHTML = departmentShifts().map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`).join("");
+      $("empBulkShift").innerHTML = normalShifts.map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`).join("");
+      $("empBulkOTShift").innerHTML = `<option value="">None</option>${otShifts.map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`).join("")}`;
       if (selectedEmpEmployee) $("empBulkEmployee").value = selectedEmpEmployee;
-      if (departmentShifts().some(s => s.id === selectedEmpShift)) $("empBulkShift").value = selectedEmpShift;
-      $("savedShifts").innerHTML = departmentShifts().map(s => `<button type="button" class="saved-shift" data-edit-shift="${s.id}"><b>${shiftDisplay(s)}</b></button>`).join("");
+      if (normalShifts.some(s => s.id === selectedEmpShift)) $("empBulkShift").value = selectedEmpShift;
+      if (otShifts.some(s => s.id === selectedEmpOTShift)) $("empBulkOTShift").value = selectedEmpOTShift;
+      $("savedShifts").innerHTML = allShifts.map(s => `<button type="button" class="saved-shift" data-edit-shift="${s.id}"><b>${shiftDisplay(s)}</b></button>`).join("");
       document.querySelectorAll("[data-edit-shift]").forEach(button => button.addEventListener("click", () => openShiftEditor(button.dataset.editShift)));
     }
 
@@ -1000,13 +1031,17 @@
     function entryButton(employee, date) {
       const dateKey = iso(date);
       const entry = store.entries[keyFor(employee.id, dateKey)] || { type: "unassigned" };
-      const time = ["full", "half"].includes(entry.type) && entry.start ? `${entry.start}–${entry.end || "?"}` : "";
       const savedShift = departmentShifts().find(s => s.id === entry.shiftId);
+      const otSavedShift = entry.otShiftId ? departmentShifts().find(s => s.id === entry.otShiftId) : null;
       const attendance = entry.attendance || "Attendance not marked";
-      const planned = savedShift ? compactCode(savedShift) : labels[entry.type];
       if (entry.type === "off") return `<td class="shift-cell"><button class="shift off" data-employee="${employee.id}" data-date="${dateKey}"><span class="type">Week Off</span><span class="attendance">Attendance not required</span></button></td>`;
+      if (entry.type === "unassigned") return `<td class="shift-cell"><button class="shift unassigned" data-employee="${employee.id}" data-date="${dateKey}"><span class="type">Unassigned</span><span class="attendance">${attendance}</span></button></td>`;
+      const nsTime = entry.start ? `${entry.start}–${entry.end || "?"}` : "";
+      const otTime = otSavedShift && entry.otStart ? `${entry.otStart}–${entry.otEnd || "?"}` : "";
+      const nsLabel = nsTime ? `<span class="time"><b>NS</b> · ${nsTime}</span>` : `<span class="time">${savedShift ? compactCode(savedShift) : labels[entry.type]}</span>`;
+      const otLabel = otTime ? `<span class="time" style="color:var(--accent);font-weight:600"><b>OT</b> · ${otTime}</span>` : "";
       return `<td class="shift-cell"><button class="shift ${entry.type}" data-employee="${employee.id}" data-date="${dateKey}">
-        <span class="type">${planned}</span>${time ? `<span class="time">${time}</span>` : ""}<span class="attendance">${attendance}</span>
+        ${nsLabel}${otLabel}<span class="attendance">${attendance}</span>
       </button></td>`;
     }
 
@@ -1036,12 +1071,17 @@
       const entry = store.entries[keyFor(employeeId, date)] || { type: "unassigned", attendance: "" };
       $("shiftModalTitle").textContent = "Edit roster entry";
       $("shiftModalSubtitle").textContent = `${employee.name} · ${fmt(parseDate(date), {weekday:"long", day:"numeric", month:"long"})}`;
+      const allShifts = departmentShifts();
+      const normalShifts = allShifts.filter(s => !s.isOT);
+      const otShifts = allShifts.filter(s => s.isOT);
       $("assignmentShift").innerHTML = [
-        ...departmentShifts().map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`),
+        ...normalShifts.map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`),
         `<option value="off">Week Off</option><option value="unassigned">Unassigned</option>`
       ].join("");
-      const matchingShift = departmentShifts().find(s => s.start === entry.start && s.end === entry.end);
+      $("assignmentOTShift").innerHTML = `<option value="">None</option>${otShifts.map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`).join("")}`;
+      const matchingShift = normalShifts.find(s => s.start === entry.start && s.end === entry.end);
       $("assignmentShift").value = entry.shiftId || matchingShift?.id || (["off","unassigned"].includes(entry.type) ? entry.type : "unassigned");
+      $("assignmentOTShift").value = entry.otShiftId || "";
       $("notes").value = entry.notes || "";
       $("shiftModal").classList.add("open");
     }
@@ -1055,6 +1095,7 @@
       $("editShiftStart").value = shift.start;
       $("editShiftEnd").value = shift.end;
       $("editShiftRemark").value = shift.remark || "";
+      $("editShiftIsOT").checked = !!shift.isOT;
       $("editShiftScope").value = "future";
       $("editShiftModal").classList.add("open");
     }
@@ -1168,10 +1209,12 @@
       e.preventDefault();
       const assignment = $("assignmentShift").value;
       const savedShift = departmentShifts().find(s => s.id === assignment);
+      const otShift = departmentShifts().find(s => s.id === $("assignmentOTShift").value);
       const markedAt = new Date().toISOString();
+      const otFields = otShift ? { otShiftId: otShift.id, otShiftCode: otShift.code, otShiftDisplayName: otShift.displayName, otStart: otShift.start, otEnd: otShift.end } : {};
       const entry = savedShift
-        ? { shiftId: savedShift.id, shiftCode: savedShift.code, shiftDisplayName: savedShift.displayName, type: savedShift.type, start: savedShift.start, end: savedShift.end, notes: $("notes").value.trim(), markedBy: `${store.department} TL`, markedAt }
-        : { type: assignment, start: "", end: "", notes: $("notes").value.trim(), markedBy: `${store.department} TL`, markedAt };
+        ? { shiftId: savedShift.id, shiftCode: savedShift.code, shiftDisplayName: savedShift.displayName, type: savedShift.type, start: savedShift.start, end: savedShift.end, ...otFields, notes: $("notes").value.trim(), markedBy: `${store.department} TL`, markedAt }
+        : { type: assignment, start: "", end: "", ...otFields, notes: $("notes").value.trim(), markedBy: `${store.department} TL`, markedAt };
       store.entries[keyFor(store.selected.employeeId, store.selected.date)] = entry;
       audit("MANUAL_ROSTER_UPDATE", "roster_entry", keyFor(store.selected.employeeId, store.selected.date), `Roster: ${entry.type}`);
       persist(); closeModals(); render();
@@ -1186,7 +1229,7 @@
       let endMinutes = Number(end.slice(0,2)) * 60 + Number(end.slice(3));
       if (endMinutes <= startMinutes) endMinutes += 1440;
       const scope = $("editShiftScope").value;
-      const updated = { ...current, displayName: $("editShiftName").value.trim(), start, end, type: endMinutes - startMinutes <= 300 ? "half" : "full", remark: $("editShiftRemark").value.trim() };
+      const updated = { ...current, displayName: $("editShiftName").value.trim(), start, end, type: endMinutes - startMinutes <= 300 ? "half" : "full", remark: $("editShiftRemark").value.trim(), isOT: $("editShiftIsOT").checked };
       if (scope === "new") {
         const number = nextShiftNumber();
         departmentShifts().push({ ...updated, id: `shift-${Date.now()}`, code: `Shift ${number}` });
@@ -1303,7 +1346,8 @@
         type: duration <= 300 ? "half" : "full",
         start,
         end,
-        remark: $("newShiftRemark").value.trim()
+        remark: $("newShiftRemark").value.trim(),
+        isOT: $("newShiftIsOT").checked
       });
       audit("SHIFT_CREATE", "shift", `shift-${number}`, `Shift ${number} ${start}-${end}`);
       persist();
@@ -1313,10 +1357,12 @@
     $("applyTemplateBtn").addEventListener("click", () => {
       const group = employeeGroups()[$("bulkGroup").value];
       const shift = departmentShifts().find(s => s.id === $("bulkShift").value);
+      const otShift = departmentShifts().find(s => s.id === $("bulkOTShift").value);
       const from = parseDate($("bulkFrom").value);
       const to = parseDate($("bulkTo").value);
       const weekOff = $("bulkWeekOff").value;
       if (!group || !shift || !from || !to || from > to) return alert("Choose a valid employee group, shift, and date range.");
+      const otFields = otShift ? { otShiftId: otShift.id, otShiftCode: otShift.code, otShiftDisplayName: otShift.displayName, otStart: otShift.start, otEnd: otShift.end } : {};
       for (let date = new Date(from); date <= to; date = addDays(date, 1)) {
         const isOff = weekOff !== "" && date.getDay() === Number(weekOff);
         group.ids.forEach(employeeId => {
@@ -1324,7 +1370,7 @@
           if (!employee || !isEligibleOn(employee, iso(date))) return;
           store.entries[keyFor(employeeId, iso(date))] = isOff
             ? { type: "off", start: "", end: "", attendance: "Week Off", notes: "Applied from deployment template", markedBy: `${store.department} TL`, markedAt: new Date().toISOString() }
-            : { shiftId: shift.id, shiftCode: shift.code, shiftDisplayName: shift.displayName, type: shift.type, start: shift.start, end: shift.end, attendance: "", notes: "Applied from deployment template", markedBy: `${store.department} TL`, markedAt: new Date().toISOString() };
+            : { shiftId: shift.id, shiftCode: shift.code, shiftDisplayName: shift.displayName, type: shift.type, start: shift.start, end: shift.end, ...otFields, attendance: "", notes: "Applied from deployment template", markedBy: `${store.department} TL`, markedAt: new Date().toISOString() };
         });
       }
       audit("ROSTER_APPLY", "employee_group", $("bulkGroup").value, `${$("bulkFrom").value} to ${$("bulkTo").value}`);
@@ -1361,19 +1407,21 @@
     $("empApplyTemplateBtn").addEventListener("click", () => {
       const employeeId = $("empBulkEmployee").value;
       const shift = departmentShifts().find(s => s.id === $("empBulkShift").value);
+      const otShift = departmentShifts().find(s => s.id === $("empBulkOTShift").value);
       const from = parseDate($("empBulkFrom").value);
       const to = parseDate($("empBulkTo").value);
       const weekOff = $("empBulkWeekOff").value;
       if (!employeeId || !shift || !from || !to || from > to) return alert("Choose a valid employee, shift, and date range.");
       const employee = store.employees.find(e => e.id === employeeId);
       if (!employee) return;
+      const otFields = otShift ? { otShiftId: otShift.id, otShiftCode: otShift.code, otShiftDisplayName: otShift.displayName, otStart: otShift.start, otEnd: otShift.end } : {};
       let count = 0;
       for (let date = new Date(from); date <= to; date = addDays(date, 1)) {
         if (!isEligibleOn(employee, iso(date))) continue;
         const isOff = weekOff !== "" && date.getDay() === Number(weekOff);
         store.entries[keyFor(employeeId, iso(date))] = isOff
           ? { type: "off", start: "", end: "", attendance: "Week Off", notes: "Applied from deployment template", markedBy: `${store.department} TL`, markedAt: new Date().toISOString() }
-          : { shiftId: shift.id, shiftCode: shift.code, shiftDisplayName: shift.displayName, type: shift.type, start: shift.start, end: shift.end, attendance: "", notes: "Applied from deployment template", markedBy: `${store.department} TL`, markedAt: new Date().toISOString() };
+          : { shiftId: shift.id, shiftCode: shift.code, shiftDisplayName: shift.displayName, type: shift.type, start: shift.start, end: shift.end, ...otFields, attendance: "", notes: "Applied from deployment template", markedBy: `${store.department} TL`, markedAt: new Date().toISOString() };
         count++;
       }
       audit("ROSTER_APPLY", "employee", employeeId, `${$("empBulkFrom").value} to ${$("empBulkTo").value}`);

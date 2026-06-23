@@ -1024,12 +1024,12 @@
       const savedShift = departmentShifts().find(s => s.id === entry.shiftId);
       const otSavedShift = entry.otShiftId ? departmentShifts().find(s => s.id === entry.otShiftId) : null;
       const attendance = entry.attendance || "Attendance not marked";
-      if (entry.type === "off") return `<td class="shift-cell"><button class="shift off" data-employee="${employee.id}" data-date="${dateKey}"><span class="type">Week Off</span><span class="attendance">Attendance not required</span></button></td>`;
-      if (entry.type === "unassigned") return `<td class="shift-cell"><button class="shift unassigned" data-employee="${employee.id}" data-date="${dateKey}"><span class="type">Unassigned</span><span class="attendance">${attendance}</span></button></td>`;
-      const nsTime = entry.start ? `${entry.start}–${entry.end || "?"}` : "";
       const otTime = otSavedShift && entry.otStart ? `${entry.otStart}–${entry.otEnd || "?"}` : "";
-      const nsLabel = nsTime ? `<span class="time"><b>NS</b> · ${nsTime}</span>` : `<span class="time">${savedShift ? compactCode(savedShift) : labels[entry.type]}</span>`;
       const otLabel = otTime ? `<span class="time" style="color:var(--accent);font-weight:600"><b>OT</b> · ${otTime}</span>` : "";
+      if (entry.type === "off") return `<td class="shift-cell"><button class="shift off" data-employee="${employee.id}" data-date="${dateKey}"><span class="type">Week Off</span><span class="attendance">Attendance not required</span></button></td>`;
+      if (entry.type === "unassigned") return `<td class="shift-cell"><button class="shift ${otSavedShift ? "full" : "unassigned"}" data-employee="${employee.id}" data-date="${dateKey}">${otSavedShift ? "" : `<span class="type">Unassigned</span>`}${otLabel}<span class="attendance">${attendance}</span></button></td>`;
+      const nsTime = entry.start ? `${entry.start}–${entry.end || "?"}` : "";
+      const nsLabel = nsTime ? `<span class="time"><b>NS</b> · ${nsTime}</span>` : `<span class="time">${savedShift ? compactCode(savedShift) : labels[entry.type]}</span>`;
       return `<td class="shift-cell"><button class="shift ${entry.type}" data-employee="${employee.id}" data-date="${dateKey}">
         ${nsLabel}${otLabel}<span class="attendance">${attendance}</span>
       </button></td>`;

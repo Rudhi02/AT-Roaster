@@ -378,8 +378,6 @@
       </div>
       <div class="dashboard-section-title">Roster Summary</div>
       <div class="dashboard-grid" id="rosterMetrics"></div>
-      <div class="dashboard-section-title">OT Summary</div>
-      <div class="dashboard-grid" id="otMetrics"></div>
       <div class="shift-breakdown" id="shiftBreakdown"></div>
     </section>
 
@@ -424,9 +422,8 @@
           <label>Display name<input id="editShiftName" placeholder="Optional display name"></label>
           <label>Change scope
             <select id="editShiftScope">
-              <option value="future">Future assignments only</option>
-              <option value="all">Existing and future assignments</option>
               <option value="new">Create as new shift</option>
+              <option value="future">Future assignments only</option>
             </select>
           </label>
           <label>Start<input id="editShiftStart" required type="time"></label>
@@ -1014,19 +1011,6 @@
         ["Unassigned slots", entries.filter(e => e.type === "unassigned").length],
         ["Week offs", entries.filter(e => e.type === "off").length],
       ].map(([label,value]) => `<div class="metric"><span>${label}</span><strong>${value}</strong></div>`).join("");
-      const otEntries = scopedPeople.flatMap(e => dates.map(d => store.entries[keyFor(e.id, iso(d))] || {type:"unassigned"})).filter(e => e.otShiftId);
-      const otEmployees = new Set(scopedPeople.flatMap(e => dates.filter(d => (store.entries[keyFor(e.id, iso(d))] || {}).otShiftId).map(() => e.id)));
-      const otShiftCounts = {};
-      scopedPeople.forEach(emp => dates.forEach(d => {
-        const e = store.entries[keyFor(emp.id, iso(d))] || {};
-        if (e.otShiftId) (otShiftCounts[e.otShiftCode || e.otShiftId] ||= new Set()).add(emp.id);
-      }));
-      $("otMetrics").innerHTML = [
-        ["Employees on OT", otEmployees.size],
-        ["OT slots assigned", otEntries.length],
-        ["OT shift types", Object.keys(otShiftCounts).length],
-      ].map(([label,value]) => `<div class="metric"><span>${label}</span><strong>${value}</strong></div>`).join("")
-        + (Object.keys(otShiftCounts).length ? Object.entries(otShiftCounts).map(([code, ids]) => `<div class="metric"><span>${code}</span><strong>${ids.size} emp</strong></div>`).join("") : `<div class="metric" style="grid-column:1/-1"><span style="color:var(--muted)">No OT shifts assigned in this period</span></div>`);
       const shiftRows = Object.entries(shifts).map(([shift, ids]) => [shift, ids.size]).sort((a,b) => b[1] - a[1]);
       $("shiftBreakdown").innerHTML = shiftRows.length
         ? `<strong>Shift-wise headcount:</strong>${shiftRows.map(([shift,count]) => `<span class="shift-chip">${shift}: <b>${count}</b></span>`).join("")}`
@@ -1101,7 +1085,7 @@
       $("editShiftEnd").value = shift.end;
       $("editShiftRemark").value = shift.remark || "";
       $("editShiftIsOT").checked = !!shift.isOT;
-      $("editShiftScope").value = "future";
+      $("editShiftScope").value = "new";
       $("editShiftModal").classList.add("open");
     }
 

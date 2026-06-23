@@ -424,6 +424,7 @@
             <select id="editShiftScope">
               <option value="new">Create as new shift</option>
               <option value="future">Future assignments only</option>
+              <option value="all">Past and future assignments</option>
             </select>
           </label>
           <label>Start<input id="editShiftStart" required type="time"></label>
@@ -434,7 +435,7 @@
           </label>
         </div>
       </div>
-      <div class="modal-footer"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">Save shift</button></div>
+      <div class="modal-footer"><button type="button" class="btn danger" id="deleteShiftBtn">Delete shift</button><div style="flex:1"></div><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">Save shift</button></div>
     </form>
   </div>
 
@@ -1206,6 +1207,15 @@
         : { type: assignment, start: "", end: "", ...otFields, notes: $("notes").value.trim(), markedBy: `${store.department} TL`, markedAt };
       store.entries[keyFor(store.selected.employeeId, store.selected.date)] = entry;
       audit("MANUAL_ROSTER_UPDATE", "roster_entry", keyFor(store.selected.employeeId, store.selected.date), `Roster: ${entry.type}`);
+      persist(); closeModals(); render();
+    });
+    $("deleteShiftBtn").addEventListener("click", () => {
+      const shift = departmentShifts().find(s => s.id === store.editingShiftId);
+      if (!shift) return;
+      if (!confirm(`Delete "${shift.code}${shift.displayName ? " · " + shift.displayName : ""}"? Existing roster entries using this shift will keep their times but lose the shift link.`)) return;
+      const shifts = departmentShifts();
+      shifts.splice(shifts.indexOf(shift), 1);
+      audit("SHIFT_DELETE", "shift", shift.id, shift.code);
       persist(); closeModals(); render();
     });
     $("editShiftForm").addEventListener("submit", e => {

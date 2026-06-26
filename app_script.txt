@@ -6,7 +6,9 @@ const ROSTER_HEADERS = [
   "Employee ID", "Employee Name", "Department", "Sub-department", "Date", "Day",
   "Shift Code", "Shift Name", "Start Time", "End Time", "Roster Status",
   "Attendance", "Remark", "Marked By / Updated By", "Last Updated At",
-  "OT Shift Code", "OT Shift Name", "OT Start Time", "OT End Time"
+  "OT Shift Code", "OT Shift Name", "OT Start Time", "OT End Time",
+  "Normal Shift 2", "Normal Shift 2 Name", "Normal Shift 2 Start Time", "Normal Shift 2 End Time",
+  "Normal Shift 3", "Normal Shift 3 Name", "Normal Shift 3 Start Time", "Normal Shift 3 End Time"
 ];
 const EMPLOYEE_HEADERS = ["Employee ID", "Employee Name", "Department", "Status", "Status Effective Date", "Remark", "Updated By", "Updated At"];
 const CONFIG_HEADERS = ["Department", "Shifts JSON", "Groups JSON", "Updated At"];
@@ -88,6 +90,8 @@ function loadDepartment_(department) {
     .forEach(row => {
       const type = typeFromStatus_(String(row[10] || "Unassigned"));
       const otCode = String(row[15] || "");
+      const ns2Code = String(row[19] || "");
+      const ns3Code = String(row[23] || "");
       entries[String(row[0]) + "|" + dateValue_(row[4])] = {
         type,
         shiftCode: String(row[6] || ""),
@@ -95,6 +99,8 @@ function loadDepartment_(department) {
         start: timeValue_(row[8]),
         end: timeValue_(row[9]),
         ...(otCode ? { otShiftCode: otCode, otShiftDisplayName: String(row[16] || ""), otStart: timeValue_(row[17]), otEnd: timeValue_(row[18]) } : {}),
+        ...(ns2Code ? { shift2Code: ns2Code, shift2DisplayName: String(row[20] || ""), shift2Start: timeValue_(row[21]), shift2End: timeValue_(row[22]) } : {}),
+        ...(ns3Code ? { shift3Code: ns3Code, shift3DisplayName: String(row[24] || ""), shift3Start: timeValue_(row[25]), shift3End: timeValue_(row[26]) } : {}),
         attendance: normalizeAttendance_(String(row[11] || "")),
         notes: String(row[12] || ""),
         markedBy: String(row[13] || ""),
@@ -162,7 +168,9 @@ function upsertRosterEntries_(sheet, employeeSheet, department, changedEntries) 
       entry.shiftCode || "", entry.shiftDisplayName || "", entry.start || "", entry.end || "",
       rosterStatus_(entry.type), attendanceDisplay_(entry), entry.notes || "",
       entry.markedBy || department + " TL", entry.markedAt || now,
-      entry.otShiftCode || "", entry.otShiftDisplayName || "", entry.otStart || "", entry.otEnd || ""
+      entry.otShiftCode || "", entry.otShiftDisplayName || "", entry.otStart || "", entry.otEnd || "",
+      entry.shift2Code || "", entry.shift2DisplayName || "", entry.shift2Start || "", entry.shift2End || "",
+      entry.shift3Code || "", entry.shift3DisplayName || "", entry.shift3Start || "", entry.shift3End || ""
     ];
     const key = department + "|" + employee.id + "|" + change.date;
     if (index.has(key)) rows[index.get(key)] = row;
@@ -176,8 +184,12 @@ function upsertRosterEntries_(sheet, employeeSheet, department, changedEntries) 
     row[9] = timeValue_(row[9]);
     if (row[17] !== undefined) row[17] = timeValue_(row[17]);
     if (row[18] !== undefined) row[18] = timeValue_(row[18]);
+    if (row[21] !== undefined) row[21] = timeValue_(row[21]);
+    if (row[22] !== undefined) row[22] = timeValue_(row[22]);
+    if (row[25] !== undefined) row[25] = timeValue_(row[25]);
+    if (row[26] !== undefined) row[26] = timeValue_(row[26]);
   });
-  writeRows_(sheet, rows, ROSTER_HEADERS.length, { textColumns: [9, 10, 18, 19] });
+  writeRows_(sheet, rows, ROSTER_HEADERS.length, { textColumns: [9, 10, 18, 19, 22, 23, 26, 27] });
 }
 
 function upsertConfig_(sheet, department, shifts, groups) {

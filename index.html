@@ -322,10 +322,12 @@
 
     <section class="page-section" id="rosterAssignment" style="display:flex;flex-direction:column;gap:0;background:var(--panel);border-radius:14px">
       <div style="padding:16px 20px 8px"><strong>Roster Assignment</strong><div class="hint">Apply shifts to groups or individual employees for selected dates.</div></div>
-      <div style="border-top:1px solid var(--line);padding:12px 20px 16px;display:grid;grid-template-columns:minmax(130px,14fr) minmax(160px,18fr) minmax(160px,18fr) minmax(110px,11fr) minmax(110px,11fr) minmax(120px,12fr) auto auto auto;align-items:end;gap:8px">
+      <div style="border-top:1px solid var(--line);padding:12px 20px 16px;display:grid;grid-template-columns:minmax(120px,12fr) minmax(140px,15fr) minmax(140px,15fr) minmax(140px,15fr) minmax(140px,15fr) minmax(100px,10fr) minmax(100px,10fr) minmax(100px,10fr) auto auto auto;align-items:end;gap:8px">
         <div style="grid-column:1/-1;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Group Roster Assignment</div>
         <label style="min-width:0">Employee Group<select id="bulkGroup" style="width:100%;min-width:0"></select></label>
         <label style="min-width:0">Normal Shift<select id="bulkShift" style="width:100%;min-width:0"></select></label>
+        <label style="min-width:0">Normal Shift 2<select id="bulkShift2" style="width:100%;min-width:0"></select></label>
+        <label style="min-width:0">Normal Shift 3<select id="bulkShift3" style="width:100%;min-width:0"></select></label>
         <label style="min-width:0">OT Shift<select id="bulkOTShift" style="width:100%;min-width:0"></select></label>
         <label style="min-width:0">From<input id="bulkFrom" type="date" style="width:100%;min-width:0"></label>
         <label style="min-width:0">To<input id="bulkTo" type="date" style="width:100%;min-width:0"></label>
@@ -334,10 +336,12 @@
         <button type="button" class="btn secondary" id="clearRosterBtn" style="min-height:36px;white-space:nowrap;font-size:13px">Clear Roster</button>
         <button type="button" class="btn secondary" id="manageGroupsBtn" style="min-height:36px;white-space:nowrap;font-size:13px">Manage Groups</button>
       </div>
-      <div style="border-top:1px solid var(--line);padding:12px 20px 16px;display:grid;grid-template-columns:minmax(150px,16fr) minmax(200px,22fr) minmax(200px,22fr) minmax(125px,13fr) minmax(125px,13fr) minmax(135px,14fr) auto auto;align-items:end;gap:8px">
+      <div style="border-top:1px solid var(--line);padding:12px 20px 16px;display:grid;grid-template-columns:minmax(120px,12fr) minmax(140px,15fr) minmax(140px,15fr) minmax(140px,15fr) minmax(140px,15fr) minmax(100px,10fr) minmax(100px,10fr) minmax(100px,10fr) auto auto;align-items:end;gap:8px">
         <div style="grid-column:1/-1;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Employee Roster Assignment</div>
         <label style="min-width:0">Employee<select id="empBulkEmployee" style="width:100%;min-width:0"></select></label>
         <label style="min-width:0">Normal Shift<select id="empBulkShift" style="width:100%;min-width:0"></select></label>
+        <label style="min-width:0">Normal Shift 2<select id="empBulkShift2" style="width:100%;min-width:0"></select></label>
+        <label style="min-width:0">Normal Shift 3<select id="empBulkShift3" style="width:100%;min-width:0"></select></label>
         <label style="min-width:0">OT Shift<select id="empBulkOTShift" style="width:100%;min-width:0"></select></label>
         <label style="min-width:0">From<input id="empBulkFrom" type="date" style="width:100%;min-width:0"></label>
         <label style="min-width:0">To<input id="empBulkTo" type="date" style="width:100%;min-width:0"></label>
@@ -403,12 +407,18 @@
           <label>Normal Shift
             <select id="assignmentShift"></select>
           </label>
+          <label>Normal Shift 2 <span style="font-weight:400;font-size:11px;color:var(--muted)">(optional)</span>
+            <select id="assignmentShift2"></select>
+          </label>
+          <label>Normal Shift 3 <span style="font-weight:400;font-size:11px;color:var(--muted)">(optional)</span>
+            <select id="assignmentShift3"></select>
+          </label>
           <label>OT Shift <span style="font-weight:400;font-size:11px;color:var(--muted)">(optional)</span>
             <select id="assignmentOTShift"></select>
           </label>
           <label class="wide">Notes<input id="notes" type="text" placeholder="Optional operational note"></label>
         </div>
-        <div class="hint">One roster record per employee per date. OT shift is optional.</div>
+        <div class="hint">One roster record per employee per date. NS2, NS3 and OT are optional.</div>
       </div>
       <div class="modal-footer"><button type="button" class="btn danger" id="clearEntry">Clear entry</button><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">Save entry</button></div>
     </form>
@@ -676,17 +686,20 @@
       store.employees = store.employees.filter(employee => employee.department !== department).concat(state.employees || []);
       // Preserve OT fields from local entries before backend overwrites them
       // (backend may not yet return OT columns if the script hasn't been redeployed)
-      const localOT = {};
+      const localExtra = {};
       Object.entries(store.entries).forEach(([key, entry]) => {
-        if (existingEmployeeIds.has(key.split("|")[0]) && entry.otShiftId) {
-          localOT[key] = { otShiftId: entry.otShiftId, otShiftCode: entry.otShiftCode, otShiftDisplayName: entry.otShiftDisplayName, otStart: entry.otStart, otEnd: entry.otEnd };
-        }
+        if (!existingEmployeeIds.has(key.split("|")[0])) return;
+        const extra = {};
+        if (entry.otShiftId) Object.assign(extra, { otShiftId: entry.otShiftId, otShiftCode: entry.otShiftCode, otShiftDisplayName: entry.otShiftDisplayName, otStart: entry.otStart, otEnd: entry.otEnd });
+        if (entry.shift2Id) Object.assign(extra, { shift2Id: entry.shift2Id, shift2Code: entry.shift2Code, shift2DisplayName: entry.shift2DisplayName, shift2Start: entry.shift2Start, shift2End: entry.shift2End });
+        if (entry.shift3Id) Object.assign(extra, { shift3Id: entry.shift3Id, shift3Code: entry.shift3Code, shift3DisplayName: entry.shift3DisplayName, shift3Start: entry.shift3Start, shift3End: entry.shift3End });
+        if (Object.keys(extra).length) localExtra[key] = extra;
       });
       Object.keys(store.entries).forEach(key => {
         if (existingEmployeeIds.has(key.split("|")[0])) delete store.entries[key];
       });
       Object.entries(state.entries || {}).forEach(([key, entry]) => {
-        store.entries[key] = localOT[key] ? { ...entry, ...localOT[key] } : entry;
+        store.entries[key] = localExtra[key] ? { ...entry, ...localExtra[key] } : entry;
       });
       store.shiftDefinitions[department] = state.shifts || [];
       store.deploymentGroups[department] = state.groups || [];
@@ -962,22 +975,37 @@
       const otShifts = allShifts.filter(s => s.isOT);
       const selectedGroup = store.selectedGroupId || $("bulkGroup").value;
       const selectedShift = $("bulkShift").value;
+      const selectedShift2 = $("bulkShift2").value;
+      const selectedShift3 = $("bulkShift3").value;
       const selectedOTShift = $("bulkOTShift").value;
       const selectedEmpEmployee = $("empBulkEmployee").value;
       const selectedEmpShift = $("empBulkShift").value;
+      const selectedEmpShift2 = $("empBulkShift2").value;
+      const selectedEmpShift3 = $("empBulkShift3").value;
       const selectedEmpOTShift = $("empBulkOTShift").value;
+      const noneOpt = `<option value="">None</option>`;
+      const normalOpts = normalShifts.map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`).join("");
+      const otOpts = otShifts.map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`).join("");
       $("bulkGroup").innerHTML = `<option value="">All Active Employees</option>${Object.entries(employeeGroups()).map(([id,g]) => `<option value="${id}">${g.label} (${g.ids.length})</option>`).join("")}`;
-      $("bulkShift").innerHTML = normalShifts.map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`).join("");
-      $("bulkOTShift").innerHTML = `<option value="">None</option>${otShifts.map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`).join("")}`;
+      $("bulkShift").innerHTML = normalOpts;
+      $("bulkShift2").innerHTML = noneOpt + normalOpts;
+      $("bulkShift3").innerHTML = noneOpt + normalOpts;
+      $("bulkOTShift").innerHTML = noneOpt + otOpts;
       if (employeeGroups()[selectedGroup]) $("bulkGroup").value = selectedGroup;
       else store.selectedGroupId = "";
       if (normalShifts.some(s => s.id === selectedShift)) $("bulkShift").value = selectedShift;
+      if (normalShifts.some(s => s.id === selectedShift2)) $("bulkShift2").value = selectedShift2;
+      if (normalShifts.some(s => s.id === selectedShift3)) $("bulkShift3").value = selectedShift3;
       if (otShifts.some(s => s.id === selectedOTShift)) $("bulkOTShift").value = selectedOTShift;
       $("empBulkEmployee").innerHTML = `<option value="">-- Select Employee --</option>${departmentEmployees().filter(e => (e.status || "Active") === "Active").map(e => `<option value="${e.id}">${e.name} · ${e.id}</option>`).join("")}`;
-      $("empBulkShift").innerHTML = normalShifts.map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`).join("");
-      $("empBulkOTShift").innerHTML = `<option value="">None</option>${otShifts.map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`).join("")}`;
+      $("empBulkShift").innerHTML = normalOpts;
+      $("empBulkShift2").innerHTML = noneOpt + normalOpts;
+      $("empBulkShift3").innerHTML = noneOpt + normalOpts;
+      $("empBulkOTShift").innerHTML = noneOpt + otOpts;
       if (selectedEmpEmployee) $("empBulkEmployee").value = selectedEmpEmployee;
       if (normalShifts.some(s => s.id === selectedEmpShift)) $("empBulkShift").value = selectedEmpShift;
+      if (normalShifts.some(s => s.id === selectedEmpShift2)) $("empBulkShift2").value = selectedEmpShift2;
+      if (normalShifts.some(s => s.id === selectedEmpShift3)) $("empBulkShift3").value = selectedEmpShift3;
       if (otShifts.some(s => s.id === selectedEmpOTShift)) $("empBulkOTShift").value = selectedEmpOTShift;
       $("savedShifts").innerHTML = allShifts.map(s => `<button type="button" class="saved-shift" data-edit-shift="${s.id}"><b>${shiftDisplay(s)}</b></button>`).join("");
       document.querySelectorAll("[data-edit-shift]").forEach(button => button.addEventListener("click", () => openShiftEditor(button.dataset.editShift)));
@@ -1027,13 +1055,17 @@
       const savedShift = departmentShifts().find(s => s.id === entry.shiftId);
       const otSavedShift = entry.otShiftId ? departmentShifts().find(s => s.id === entry.otShiftId) : null;
       const otTime = otSavedShift && entry.otStart ? `${entry.otStart}–${entry.otEnd || "?"}` : "";
+      const ns2Time = entry.shift2Start ? `${entry.shift2Start}–${entry.shift2End || "?"}` : "";
+      const ns3Time = entry.shift3Start ? `${entry.shift3Start}–${entry.shift3End || "?"}` : "";
       const otLabel = otTime ? `<span class="time" style="color:var(--accent);font-weight:600"><b>OT</b> · ${otTime}</span>` : "";
-      if (entry.type === "off") return `<td class="shift-cell"><button class="shift off" data-employee="${employee.id}" data-date="${dateKey}"><span class="time"><b>NS</b> · Week Off</span>${otLabel}</button></td>`;
-      if (entry.type === "unassigned") return `<td class="shift-cell"><button class="shift ${otSavedShift ? "full" : "unassigned"}" data-employee="${employee.id}" data-date="${dateKey}">${otSavedShift ? "" : `<span class="type">Unassigned</span>`}${otLabel}</button></td>`;
+      const ns2Label = ns2Time ? `<span class="time"><b>NS2</b> · ${ns2Time}</span>` : "";
+      const ns3Label = ns3Time ? `<span class="time"><b>NS3</b> · ${ns3Time}</span>` : "";
+      if (entry.type === "off") return `<td class="shift-cell"><button class="shift off" data-employee="${employee.id}" data-date="${dateKey}"><span class="time"><b>NS</b> · Week Off</span>${ns2Label}${ns3Label}${otLabel}</button></td>`;
+      if (entry.type === "unassigned") return `<td class="shift-cell"><button class="shift ${(otSavedShift || ns2Time || ns3Time) ? "full" : "unassigned"}" data-employee="${employee.id}" data-date="${dateKey}">${(otSavedShift || ns2Time || ns3Time) ? "" : `<span class="type">Unassigned</span>`}${ns2Label}${ns3Label}${otLabel}</button></td>`;
       const nsTime = entry.start ? `${entry.start}–${entry.end || "?"}` : "";
       const nsLabel = nsTime ? `<span class="time"><b>NS</b> · ${nsTime}</span>` : `<span class="time">${savedShift ? compactCode(savedShift) : labels[entry.type]}</span>`;
       return `<td class="shift-cell"><button class="shift ${entry.type}" data-employee="${employee.id}" data-date="${dateKey}">
-        ${nsLabel}${otLabel}
+        ${nsLabel}${ns2Label}${ns3Label}${otLabel}
       </button></td>`;
     }
 
@@ -1066,13 +1098,17 @@
       const allShifts = departmentShifts();
       const normalShifts = allShifts.filter(s => !s.isOT);
       const otShifts = allShifts.filter(s => s.isOT);
-      $("assignmentShift").innerHTML = [
-        ...normalShifts.map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`),
-        `<option value="off">Week Off</option><option value="unassigned">Unassigned</option>`
-      ].join("");
-      $("assignmentOTShift").innerHTML = `<option value="">None</option>${otShifts.map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`).join("")}`;
+      const normalOpts = normalShifts.map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`).join("");
+      const noneOpt = `<option value="">None</option>`;
+      const otOpts = otShifts.map(s => `<option value="${s.id}">${shiftDisplay(s)}</option>`).join("");
+      $("assignmentShift").innerHTML = normalOpts + `<option value="off">Week Off</option><option value="unassigned">Unassigned</option>`;
+      $("assignmentShift2").innerHTML = noneOpt + normalOpts;
+      $("assignmentShift3").innerHTML = noneOpt + normalOpts;
+      $("assignmentOTShift").innerHTML = noneOpt + otOpts;
       const matchingShift = normalShifts.find(s => s.start === entry.start && s.end === entry.end);
       $("assignmentShift").value = entry.shiftId || matchingShift?.id || (["off","unassigned"].includes(entry.type) ? entry.type : "unassigned");
+      $("assignmentShift2").value = entry.shift2Id || "";
+      $("assignmentShift3").value = entry.shift3Id || "";
       $("assignmentOTShift").value = entry.otShiftId || "";
       $("notes").value = entry.notes || "";
       $("shiftModal").classList.add("open");
@@ -1201,12 +1237,16 @@
       e.preventDefault();
       const assignment = $("assignmentShift").value;
       const savedShift = departmentShifts().find(s => s.id === assignment);
+      const shift2 = departmentShifts().find(s => s.id === $("assignmentShift2").value);
+      const shift3 = departmentShifts().find(s => s.id === $("assignmentShift3").value);
       const otShift = departmentShifts().find(s => s.id === $("assignmentOTShift").value);
       const markedAt = new Date().toISOString();
+      const shift2Fields = shift2 ? { shift2Id: shift2.id, shift2Code: shift2.code, shift2DisplayName: shift2.displayName, shift2Start: shift2.start, shift2End: shift2.end } : {};
+      const shift3Fields = shift3 ? { shift3Id: shift3.id, shift3Code: shift3.code, shift3DisplayName: shift3.displayName, shift3Start: shift3.start, shift3End: shift3.end } : {};
       const otFields = otShift ? { otShiftId: otShift.id, otShiftCode: otShift.code, otShiftDisplayName: otShift.displayName, otStart: otShift.start, otEnd: otShift.end } : {};
       const entry = savedShift
-        ? { shiftId: savedShift.id, shiftCode: savedShift.code, shiftDisplayName: savedShift.displayName, type: savedShift.type, start: savedShift.start, end: savedShift.end, ...otFields, notes: $("notes").value.trim(), markedBy: `${store.department} TL`, markedAt }
-        : { type: assignment, start: "", end: "", ...otFields, notes: $("notes").value.trim(), markedBy: `${store.department} TL`, markedAt };
+        ? { shiftId: savedShift.id, shiftCode: savedShift.code, shiftDisplayName: savedShift.displayName, type: savedShift.type, start: savedShift.start, end: savedShift.end, ...shift2Fields, ...shift3Fields, ...otFields, notes: $("notes").value.trim(), markedBy: `${store.department} TL`, markedAt }
+        : { type: assignment, start: "", end: "", ...shift2Fields, ...shift3Fields, ...otFields, notes: $("notes").value.trim(), markedBy: `${store.department} TL`, markedAt };
       store.entries[keyFor(store.selected.employeeId, store.selected.date)] = entry;
       audit("MANUAL_ROSTER_UPDATE", "roster_entry", keyFor(store.selected.employeeId, store.selected.date), `Roster: ${entry.type}`);
       persist(); closeModals(); render();
@@ -1358,11 +1398,15 @@
     $("applyTemplateBtn").addEventListener("click", () => {
       const group = employeeGroups()[$("bulkGroup").value];
       const shift = departmentShifts().find(s => s.id === $("bulkShift").value);
+      const shift2 = departmentShifts().find(s => s.id === $("bulkShift2").value);
+      const shift3 = departmentShifts().find(s => s.id === $("bulkShift3").value);
       const otShift = departmentShifts().find(s => s.id === $("bulkOTShift").value);
       const from = parseDate($("bulkFrom").value);
       const to = parseDate($("bulkTo").value);
       const weekOff = $("bulkWeekOff").value;
       if (!group || !shift || !from || !to || from > to) return alert("Choose a valid employee group, shift, and date range.");
+      const shift2Fields = shift2 ? { shift2Id: shift2.id, shift2Code: shift2.code, shift2DisplayName: shift2.displayName, shift2Start: shift2.start, shift2End: shift2.end } : {};
+      const shift3Fields = shift3 ? { shift3Id: shift3.id, shift3Code: shift3.code, shift3DisplayName: shift3.displayName, shift3Start: shift3.start, shift3End: shift3.end } : {};
       const otFields = otShift ? { otShiftId: otShift.id, otShiftCode: otShift.code, otShiftDisplayName: otShift.displayName, otStart: otShift.start, otEnd: otShift.end } : {};
       for (let date = new Date(from); date <= to; date = addDays(date, 1)) {
         const isOff = weekOff !== "" && date.getDay() === Number(weekOff);
@@ -1371,7 +1415,7 @@
           if (!employee || !isEligibleOn(employee, iso(date))) return;
           store.entries[keyFor(employeeId, iso(date))] = isOff
             ? { type: "off", start: "", end: "", attendance: "Week Off", notes: "Applied from deployment template", markedBy: `${store.department} TL`, markedAt: new Date().toISOString() }
-            : { shiftId: shift.id, shiftCode: shift.code, shiftDisplayName: shift.displayName, type: shift.type, start: shift.start, end: shift.end, ...otFields, attendance: "", notes: "Applied from deployment template", markedBy: `${store.department} TL`, markedAt: new Date().toISOString() };
+            : { shiftId: shift.id, shiftCode: shift.code, shiftDisplayName: shift.displayName, type: shift.type, start: shift.start, end: shift.end, ...shift2Fields, ...shift3Fields, ...otFields, attendance: "", notes: "Applied from deployment template", markedBy: `${store.department} TL`, markedAt: new Date().toISOString() };
         });
       }
       audit("ROSTER_APPLY", "employee_group", $("bulkGroup").value, `${$("bulkFrom").value} to ${$("bulkTo").value}`);
@@ -1408,6 +1452,8 @@
     $("empApplyTemplateBtn").addEventListener("click", () => {
       const employeeId = $("empBulkEmployee").value;
       const shift = departmentShifts().find(s => s.id === $("empBulkShift").value);
+      const shift2 = departmentShifts().find(s => s.id === $("empBulkShift2").value);
+      const shift3 = departmentShifts().find(s => s.id === $("empBulkShift3").value);
       const otShift = departmentShifts().find(s => s.id === $("empBulkOTShift").value);
       const from = parseDate($("empBulkFrom").value);
       const to = parseDate($("empBulkTo").value);
@@ -1415,6 +1461,8 @@
       if (!employeeId || !shift || !from || !to || from > to) return alert("Choose a valid employee, shift, and date range.");
       const employee = store.employees.find(e => e.id === employeeId);
       if (!employee) return;
+      const shift2Fields = shift2 ? { shift2Id: shift2.id, shift2Code: shift2.code, shift2DisplayName: shift2.displayName, shift2Start: shift2.start, shift2End: shift2.end } : {};
+      const shift3Fields = shift3 ? { shift3Id: shift3.id, shift3Code: shift3.code, shift3DisplayName: shift3.displayName, shift3Start: shift3.start, shift3End: shift3.end } : {};
       const otFields = otShift ? { otShiftId: otShift.id, otShiftCode: otShift.code, otShiftDisplayName: otShift.displayName, otStart: otShift.start, otEnd: otShift.end } : {};
       let count = 0;
       for (let date = new Date(from); date <= to; date = addDays(date, 1)) {
@@ -1422,7 +1470,7 @@
         const isOff = weekOff !== "" && date.getDay() === Number(weekOff);
         store.entries[keyFor(employeeId, iso(date))] = isOff
           ? { type: "off", start: "", end: "", attendance: "Week Off", notes: "Applied from deployment template", markedBy: `${store.department} TL`, markedAt: new Date().toISOString() }
-          : { shiftId: shift.id, shiftCode: shift.code, shiftDisplayName: shift.displayName, type: shift.type, start: shift.start, end: shift.end, ...otFields, attendance: "", notes: "Applied from deployment template", markedBy: `${store.department} TL`, markedAt: new Date().toISOString() };
+          : { shiftId: shift.id, shiftCode: shift.code, shiftDisplayName: shift.displayName, type: shift.type, start: shift.start, end: shift.end, ...shift2Fields, ...shift3Fields, ...otFields, attendance: "", notes: "Applied from deployment template", markedBy: `${store.department} TL`, markedAt: new Date().toISOString() };
         count++;
       }
       audit("ROSTER_APPLY", "employee", employeeId, `${$("empBulkFrom").value} to ${$("empBulkTo").value}`);

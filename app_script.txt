@@ -18,7 +18,8 @@ function setDepartmentTokens() {
     "AT-SUPPORT-2026-3wL7cB5m": "Support",
     "AT-FINANCE-2026-8yH2dQ4s": "Finance",
     "AT-OPSIN-2026-5tK3nW8j": "Ops Inbound",
-    "AT-WALLET-2026-2mR6vX9p": "Wallet"
+    "AT-WALLET-2026-2mR6vX9p": "Wallet",
+    "AT-IMPUS-2026-7cV3nZ8k": "Implementation - US"
   }));
   PropertiesService.getScriptProperties().setProperty("AT_ROSTER_ADMIN_TOKEN", "AT-ADMIN-2026-xQ7wP2mK");
 }

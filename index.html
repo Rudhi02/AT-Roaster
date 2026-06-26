@@ -403,21 +403,23 @@
     <form class="modal" id="shiftForm">
       <div class="modal-header"><div><strong id="shiftModalTitle">Edit roster entry</strong><div class="hint" id="shiftModalSubtitle"></div></div><button type="button" class="close" data-close>&times;</button></div>
       <div class="modal-body">
-        <div class="form-grid">
-          <label>Normal Shift
-            <select id="assignmentShift"></select>
-          </label>
-          <label>Normal Shift 2 <span style="font-weight:400;font-size:11px;color:var(--muted)">(optional)</span>
-            <select id="assignmentShift2"></select>
-          </label>
-          <label>Normal Shift 3 <span style="font-weight:400;font-size:11px;color:var(--muted)">(optional)</span>
-            <select id="assignmentShift3"></select>
-          </label>
-          <label>OT Shift <span style="font-weight:400;font-size:11px;color:var(--muted)">(optional)</span>
-            <select id="assignmentOTShift"></select>
-          </label>
-          <label class="wide">Notes<input id="notes" type="text" placeholder="Optional operational note"></label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start">
+          <div style="display:flex;flex-direction:column;gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden">
+            <div style="padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--line);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Normal Shifts</div>
+            <div style="padding:10px 12px;display:flex;flex-direction:column;gap:8px">
+              <label style="margin:0">Normal Shift<select id="assignmentShift" style="width:100%"></select></label>
+              <label style="margin:0">Normal Shift 2 <span style="font-weight:400;font-size:11px;color:var(--muted)">(optional)</span><select id="assignmentShift2" style="width:100%"></select></label>
+              <label style="margin:0">Normal Shift 3 <span style="font-weight:400;font-size:11px;color:var(--muted)">(optional)</span><select id="assignmentShift3" style="width:100%"></select></label>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden">
+            <div style="padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--line);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">OT Shift</div>
+            <div style="padding:10px 12px">
+              <label style="margin:0">OT Shift <span style="font-weight:400;font-size:11px;color:var(--muted)">(optional)</span><select id="assignmentOTShift" style="width:100%"></select></label>
+            </div>
+          </div>
         </div>
+        <label style="margin-top:4px">Notes<input id="notes" type="text" placeholder="Optional operational note"></label>
         <div class="hint">One roster record per employee per date. NS2, NS3 and OT are optional.</div>
       </div>
       <div class="modal-footer"><button type="button" class="btn danger" id="clearEntry">Clear entry</button><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">Save entry</button></div>

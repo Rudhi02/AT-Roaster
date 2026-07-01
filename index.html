@@ -297,6 +297,7 @@
       <button class="btn ghost" id="manageStatusBtn">Manage Employees</button>
       <button class="btn ghost admin-only" id="sheetSyncBtn">Google Sheet Sync</button>
       <button class="btn ghost" id="exportBtn">Export Roster</button>
+      <label class="admin-only" style="display:flex;align-items:center;gap:6px;margin:0;font-size:13px;font-weight:500;color:var(--text-muted)">Viewing:<select id="adminViewDepartment" style="font-size:13px;padding:4px 8px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer"></select></label>
       <button class="btn ghost" id="logoutBtn">Log Out</button>
     </div>
   </header>
@@ -536,8 +537,7 @@
           <label>Department Name<input id="departmentName" required placeholder="Department name"></label>
           <label>Department Password<input id="departmentPassword" type="password" placeholder="Required for new department"></label>
           <label>Status<select id="departmentStatus"><option>Active</option><option>Inactive</option></select></label>
-          <label>Admin View Department<select id="adminViewDepartment"></select></label>
-          <div class="wide"><button class="btn primary" type="submit">Save Department</button> <button class="btn secondary" id="newDepartmentBtn" type="button">New Department</button></div>
+<div class="wide"><button class="btn primary" type="submit">Save Department</button> <button class="btn secondary" id="newDepartmentBtn" type="button">New Department</button></div>
         </form>
         <div class="employee-table-wrap">
           <table class="employee-table department-table"><thead><tr><th>Department Name</th><th>Status</th><th>Password Last Updated</th><th>Created By</th><th>Created At</th><th>Last Updated At</th><th>Actions</th></tr></thead><tbody id="departmentRows"></tbody></table>

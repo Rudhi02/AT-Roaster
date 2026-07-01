@@ -13,16 +13,22 @@ const ROSTER_HEADERS = [
 const EMPLOYEE_HEADERS = ["Employee ID", "Employee Name", "Department", "Status", "Status Effective Date", "Remark", "Updated By", "Updated At"];
 const CONFIG_HEADERS = ["Department", "Shifts JSON", "Groups JSON", "Updated At"];
 
+const DEPT_TOKEN_SECRET = "AT-ROSTER-AXESTRACK-2026";
+
+function getDeptToken_(dept) {
+  if (!dept) return "";
+  const key = DEPT_TOKEN_SECRET + dept.trim().toLowerCase();
+  let h = 0x811c9dc5;
+  for (let i = 0; i < key.length; i++) {
+    h ^= key.charCodeAt(i);
+    h = ((h * 0x01000193) >>> 0);
+  }
+  return "AT-DEPT-" + ("00000000" + h.toString(16).toUpperCase()).slice(-8);
+}
+
 function setDepartmentTokens() {
-  PropertiesService.getScriptProperties().setProperty("AT_ROSTER_DEPARTMENT_TOKENS", JSON.stringify({
-    "AT-OPS-2026-9kP4xM7q": "Operations",
-    "AT-QUALITY-2026-6nR8vT2z": "Quality",
-    "AT-SUPPORT-2026-3wL7cB5m": "Support",
-    "AT-FINANCE-2026-8yH2dQ4s": "Finance",
-    "AT-OPSIN-2026-5tK3nW8j": "Ops Inbound",
-    "AT-WALLET-2026-2mR6vX9p": "Wallet",
-    "AT-IMPUS-2026-7cV3nZ8k": "Implementation - US"
-  }));
+  // No longer needed — tokens are generated dynamically from department name.
+  // Kept for backward compatibility; only sets the admin token.
   PropertiesService.getScriptProperties().setProperty("AT_ROSTER_ADMIN_TOKEN", "AT-ADMIN-2026-xQ7wP2mK");
 }
 
@@ -69,10 +75,10 @@ function saveGlobalConfig_(payload) {
 }
 
 function authorize_(token, requestedDepartment) {
-  const tokens = JSON.parse(PropertiesService.getScriptProperties().getProperty("AT_ROSTER_DEPARTMENT_TOKENS") || "{}");
-  const department = tokens[token];
-  if (!department || department !== requestedDepartment) throw new Error("Unauthorized department request");
-  return department;
+  if (!token || !requestedDepartment) throw new Error("Unauthorized department request");
+  const expected = getDeptToken_(requestedDepartment);
+  if (token !== expected) throw new Error("Unauthorized department request");
+  return requestedDepartment;
 }
 
 function loadDepartment_(department) {

@@ -565,26 +565,16 @@
     ];
     const ADMIN_PASSWORD = "ad123";
     const ADMIN_SYNC_TOKEN = "AT-ADMIN-2026-xQ7wP2mK";
-    const DEPARTMENT_SYNC_TOKENS = {
-      Operations: "AT-OPS-2026-9kP4xM7q",
-      Quality: "AT-QUALITY-2026-6nR8vT2z",
-      Support: "AT-SUPPORT-2026-3wL7cB5m",
-      Finance: "AT-FINANCE-2026-8yH2dQ4s",
-      "Ops Inbound": "AT-OPSIN-2026-5tK3nW8j",
-      "ops inbound": "AT-OPSIN-2026-5tK3nW8j",
-      "OPS Inbound": "AT-OPSIN-2026-5tK3nW8j",
-      "Ops inbound": "AT-OPSIN-2026-5tK3nW8j",
-      Wallet: "AT-WALLET-2026-2mR6vX9p",
-      wallet: "AT-WALLET-2026-2mR6vX9p",
-      WALLET: "AT-WALLET-2026-2mR6vX9p",
-      "Implementation - US": "AT-IMPUS-2026-7cV3nZ8k",
-      "implementation - us": "AT-IMPUS-2026-7cV3nZ8k",
-      "Implementation - us": "AT-IMPUS-2026-7cV3nZ8k"
-    };
+    // Tokens are generated deterministically from department name + shared secret.
+    // Any new department added in the app automatically gets a valid sync token —
+    // no code changes required on either frontend or backend.
+    const DEPT_TOKEN_SECRET = "AT-ROSTER-AXESTRACK-2026";
     const getDeptToken = dept => {
       if (!dept) return "";
-      return DEPARTMENT_SYNC_TOKENS[dept] || DEPARTMENT_SYNC_TOKENS[dept.trim()] ||
-        Object.entries(DEPARTMENT_SYNC_TOKENS).find(([k]) => k.toLowerCase() === dept.toLowerCase())?.[1] || "";
+      const key = DEPT_TOKEN_SECRET + dept.trim().toLowerCase();
+      let h = 0x811c9dc5;
+      for (let i = 0; i < key.length; i++) { h ^= key.charCodeAt(i); h = (h * 0x01000193) >>> 0; }
+      return "AT-DEPT-" + h.toString(16).toUpperCase().padStart(8, "0");
     };
     const defaultShifts = [
       { id: "shift-1", code: "Shift 1", displayName: "Standard", type: "full", start: "09:00", end: "18:00", remark: "" },

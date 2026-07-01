@@ -13,22 +13,18 @@ const ROSTER_HEADERS = [
 const EMPLOYEE_HEADERS = ["Employee ID", "Employee Name", "Department", "Status", "Status Effective Date", "Remark", "Updated By", "Updated At"];
 const CONFIG_HEADERS = ["Department", "Shifts JSON", "Groups JSON", "Updated At"];
 
-const DEPT_TOKEN_SECRET = "AT-ROSTER-AXESTRACK-2026";
+const DEPARTMENT_SYNC_TOKENS = {
+  "Ops Inbound":         "AT-DEPT-OPS-INBOUND-2026",
+  "Wallet":              "AT-DEPT-WALLET-2026",
+  "Implementation - US": "AT-DEPT-IMPL-US-2026",
+  "Ops - Automobile":    "AT-DEPT-OPS-AUTO-2026",
+};
 
 function getDeptToken_(dept) {
-  if (!dept) return "";
-  const key = DEPT_TOKEN_SECRET + dept.trim().toLowerCase();
-  let h = 0x811c9dc5;
-  for (let i = 0; i < key.length; i++) {
-    h ^= key.charCodeAt(i);
-    h = ((h * 0x01000193) >>> 0);
-  }
-  return "AT-DEPT-" + ("00000000" + h.toString(16).toUpperCase()).slice(-8);
+  return DEPARTMENT_SYNC_TOKENS[dept] || "";
 }
 
 function setDepartmentTokens() {
-  // No longer needed — tokens are generated dynamically from department name.
-  // Kept for backward compatibility; only sets the admin token.
   PropertiesService.getScriptProperties().setProperty("AT_ROSTER_ADMIN_TOKEN", "AT-ADMIN-2026-xQ7wP2mK");
 }
 

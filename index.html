@@ -565,17 +565,13 @@
     ];
     const ADMIN_PASSWORD = "ad123";
     const ADMIN_SYNC_TOKEN = "AT-ADMIN-2026-xQ7wP2mK";
-    // Tokens are generated deterministically from department name + shared secret.
-    // Any new department added in the app automatically gets a valid sync token —
-    // no code changes required on either frontend or backend.
-    const DEPT_TOKEN_SECRET = "AT-ROSTER-AXESTRACK-2026";
-    const getDeptToken = dept => {
-      if (!dept) return "";
-      const key = DEPT_TOKEN_SECRET + dept.trim().toLowerCase();
-      let h = 0x811c9dc5;
-      for (let i = 0; i < key.length; i++) { h ^= key.charCodeAt(i); h = (h * 0x01000193) >>> 0; }
-      return "AT-DEPT-" + h.toString(16).toUpperCase().padStart(8, "0");
+    const DEPARTMENT_SYNC_TOKENS = {
+      "Ops Inbound":        "AT-DEPT-OPS-INBOUND-2026",
+      "Wallet":             "AT-DEPT-WALLET-2026",
+      "Implementation - US":"AT-DEPT-IMPL-US-2026",
+      "Ops - Automobile":   "AT-DEPT-OPS-AUTO-2026",
     };
+    const getDeptToken = dept => DEPARTMENT_SYNC_TOKENS[dept] || "";
     const defaultShifts = [
       { id: "shift-1", code: "Shift 1", displayName: "Standard", type: "full", start: "09:00", end: "18:00", remark: "" },
       { id: "shift-2", code: "Shift 2", displayName: "Morning", type: "full", start: "07:00", end: "16:00", remark: "" },

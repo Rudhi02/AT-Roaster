@@ -891,6 +891,10 @@
     function setAccessUi() {
       document.body.classList.toggle("admin-mode", store.accessLevel === "admin");
       $("accessBadge").textContent = "Department Access";
+      if (store.accessLevel === "admin") {
+        $("adminViewDepartment").innerHTML = activeDepartments().map(d => `<option value="${d.name}">${d.name}</option>`).join("");
+        $("adminViewDepartment").value = store.department;
+      }
     }
 
     function renderDepartmentManager() {
